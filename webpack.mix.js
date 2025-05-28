@@ -12,6 +12,7 @@ mix
   .less("./node_modules/admin-lte/build/less/AdminLTE.less", "css/build")
   .less("./resources/assets/less/app.less", "css/build")
   .less("./resources/assets/less/overrides.less", "css/build")
+  .less("./resources/assets/less/ff.less", "css/build")
   .styles(
     [
 
