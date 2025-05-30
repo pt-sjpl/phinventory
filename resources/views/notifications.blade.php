@@ -1,7 +1,7 @@
 @if ($errors->any())
 <div class="col-md-12" id="error-notification">
     <div class="alert alert-danger fade in">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <button type="button" class="close" style="line-height: .8;" data-dismiss="alert">&times;</button>
         <i class="fas fa-exclamation-triangle faa-pulse animated"></i>
         <strong>{{ trans('general.notification_error') }}:</strong>
          {{ trans('general.notification_error_hint') }}
@@ -14,7 +14,7 @@
 @if ($message = session()->get('status'))
     <div class="col-md-12" id="success-notification">
         <div class="alert alert-success fade in">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <button type="button" class="close" style="line-height: .8;" data-dismiss="alert">&times;</button>
             <i class="fas fa-check faa-pulse animated"></i>
             <strong>{{ trans('general.notification_success') }}: </strong>
             {{ $message }}
@@ -26,7 +26,7 @@
 @if ($message = session()->get('success'))
 <div class="col-md-12" id="success-notification">
     <div class="alert alert-success fade in">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <button type="button" class="close" style="line-height: .8;" data-dismiss="alert">&times;</button>
         <i class="fas fa-check faa-pulse animated"></i>
         <strong>{{ trans('general.notification_success') }}: </strong>
         {{ $message }}
@@ -39,7 +39,7 @@
 @if ($message = session()->get('success-unescaped'))
     <div class="col-md-12" id="success-notification">
         <div class="alert alert-success fade in">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <button type="button" class="close" style="line-height: .8;" data-dismiss="alert">&times;</button>
             <i class="fas fa-check faa-pulse animated"></i>
             <strong>{{ trans('general.notification_success') }}: </strong>
             {!!  $message !!}
@@ -53,7 +53,7 @@
     @foreach ($assets as $asset)
         <div class="col-md-12" id="multi-error-notification">
             <div class="alert alert-info fade in">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <button type="button" class="close" style="line-height: .8;" data-dismiss="alert">&times;</button>
                 <i class="fas fa-info-circle faa-pulse animated"></i>
                 <strong>{{ trans('general.asset_information') }}:</strong>
                 <ul>
@@ -79,7 +79,7 @@
     @foreach ($consumables as $consumable)
         <div class="col-md-12" id="success-notification">
             <div class="alert alert-info fade in">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <button type="button" class="close" style="line-height: .8;" data-dismiss="alert">&times;</button>
                 <i class="fas fa-info-circle faa-pulse animated"></i>
                 <strong>{{ trans('general.consumable_information') }}: </strong>
                 <ul><li><b>{{ trans('general.consumable_name') }}</b> {{ $consumable->name }}</li></ul>
@@ -93,7 +93,7 @@
     @foreach ($accessories as $accessory)
         <div class="col-md-12">
             <div class="alert alert-info fade in">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <button type="button" class="close" style="line-height: .8;" data-dismiss="alert">&times;</button>
                 <i class="fas fa-info-circle faa-pulse animated"></i>
                 <strong>{{ trans('general.accessory_information') }}:</strong>
                 <ul><li><b>{{ trans('general.accessory_name') }}</b> {{ $accessory->name }}</li></ul>
@@ -105,8 +105,8 @@
 
 @if ($message = session()->get('error'))
 <div class="col-md-12">
-    <div class="alert alert alert-danger fade in">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <div class="alert alert-danger fade in">
+        <button type="button" class="close" style="line-height: .8;" data-dismiss="alert">&times;</button>
         <i class="fas fa-exclamation-triangle faa-pulse animated"></i>
         <strong>{{ trans('general.error') }}: </strong>
         {{ $message }}
@@ -118,8 +118,8 @@
 @if ($messages = session()->get('error_messages'))
 @foreach ($messages as $message)        
 <div class="col-md-12">
-    <div class="alert alert alert-danger fade in">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <div class="alert alert-danger fade in">
+        <button type="button" class="close" style="line-height: .8;" data-dismiss="alert">&times;</button>
         <i class="fas fa-exclamation-triangle faa-pulse animated"></i>
         <strong>{{ trans('general.notification_error') }}: </strong>
         {{ $message }}
@@ -131,8 +131,8 @@
 
 @if ($messages = session()->get('bulk_asset_errors'))
 <div class="col-md-12">
-    <div class="alert alert alert-danger fade in">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <div class="alert alert-danger fade in">
+        <button type="button" class="close" style="line-height: .8;" data-dismiss="alert">&times;</button>
         <i class="fas fa-exclamation-triangle faa-pulse animated"></i>
         <strong>{{ trans('general.notification_error') }}: </strong>
        {{ trans('general.notification_bulk_error_hint') }}
@@ -151,7 +151,7 @@
 @if ($message = session()->get('warning'))
 <div class="col-md-12">
     <div class="alert alert-warning fade in">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <button type="button" class="close" style="line-height: .8;" data-dismiss="alert">&times;</button>
         <i class="fas fa-exclamation-triangle faa-pulse animated"></i>
         <strong>{{ trans('general.notification_warning') }}: </strong>
         {{ $message }}
@@ -163,7 +163,7 @@
 @if ($message = session()->get('info'))
 <div class="col-md-12">
     <div class="alert alert-info fade in">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <button type="button" class="close" style="line-height: .8;" data-dismiss="alert">&times;</button>
         <i class="fas fa-info-circle faa-pulse animated"></i>
         <strong>{{ trans('general.notification_info') }}: </strong>
         {{ $message }}
