@@ -963,6 +963,7 @@ class Asset extends Depreciable
             return $this->model->category->require_acceptance;
         }
 
+        return false;
     }
 
 
