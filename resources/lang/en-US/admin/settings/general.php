@@ -484,6 +484,7 @@ return [
         'php_overview'      => 'phpinfo, system, info',
         'purge'             => 'permanently delete',
         'security'          => 'password, passwords, requirements, two factor, two-factor, common passwords, remote login, logout, authentication',
+        'notifications'     => 'alerts, email, notifications, audit, threshold, email alerts, cc',
     ],
 
 ];
