@@ -62,7 +62,7 @@
     });
   }
   &__container {
-    padding: 0 40px;
+    padding: 20px 40px;
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -78,6 +78,7 @@
           color: @dark-grey;
           font-size: 28px;
           font-weight: 700;
+          text-align: center;
         }
         & .header-description {
           color: @light-grey;
@@ -87,7 +88,10 @@
         }
       }
       &__content {
-        margin-top: 40px;
+        margin-top: 20px;
+        .responsive-xl({
+          margin-top: 40px;
+        });
         & .label-style-ff {
           font-size: 14px;
           font-weight: 400;
