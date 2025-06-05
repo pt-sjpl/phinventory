@@ -42,6 +42,7 @@
             @include('partials.users-bulk-actions')
 
             <table
+                    data-advanced-search="true"
                     data-click-to-select="true"
                     data-columns="{{ \App\Presenters\UserPresenter::dataTableLayout() }}"
                     data-cookie-id-table="usersTable"
