@@ -153,7 +153,7 @@
 
                  @if (($user->isSuperUser()) || ($user->hasAccess('admin')))
                       <x-icon type="superadmin" class="fa-2x {{  ($user->isSuperUser()) ? 'text-danger' : 'text-orange'}}" />
-                        <div class="{{  ($user->isSuperUser()) ? 'text-danger' : ' text-orange'}}" style="font-weight: bold">{{  ($user->isSuperUser()) ? strtolower(trans('general.superuser')) : strtolower(trans('general.admin')) }}</div>
+                        <div class="{{  ($user->isSuperUser()) ? 'text-danger' : ' text-orange'}}" style="font-weight: bold">{{  ($user->isSuperUser()) ? strtolower(trans('general.superuser')) : strtolower(trans('general.admin_user')) }}</div>
                   @endif
 
                 
@@ -336,7 +336,7 @@
                         @if ($user->isSuperUser())
                           <span class="label label-danger" data-tooltip="true" title="{{ trans('general.superuser_tooltip') }}"><x-icon type="superadmin" title="{{ trans('general.superuser') }}" /></span>&nbsp;
                         @elseif ($user->hasAccess('admin'))
-                          <span class="label label-warning" data-tooltip="true" title="{{ trans('general.admin_tooltip') }}"><x-icon type="superadmin" title="{{ trans('general.admin') }}" /></span>&nbsp;
+                          <span class="label label-warning" data-tooltip="true" title="{{ trans('general.admin_tooltip') }}"><x-icon type="superadmin" title="{{ trans('general.admin_user') }}" /></span>&nbsp;
                         @endif
                          {{ $user->username }}
 
@@ -769,6 +769,8 @@
                     data-pagination="true"
                     data-id-table="userAssetsListingTable"
                     data-search="true"
+                    data-search-highlight="true"
+                    data-show-print="true"
                     data-side-pagination="server"
                     data-show-columns="true"
                     data-show-fullscreen="true"
@@ -800,6 +802,8 @@
                     data-id-table="userLicenseTable"
                     id="userLicenseTable"
                     data-search="true"
+                    data-search-highlight="true"
+                    data-show-print="true"
                     data-pagination="true"
                     data-side-pagination="client"
                     data-show-columns="true"
@@ -866,6 +870,8 @@
                     data-id-table="userAccessoryTable"
                     id="userAccessoryTable"
                     data-search="true"
+                    data-search-highlight="true"
+                    data-show-print="true"
                     data-pagination="true"
                     data-side-pagination="client"
                     data-show-columns="true"
@@ -917,6 +923,8 @@
                     data-id-table="userConsumableTable"
                     id="userConsumableTable"
                     data-search="true"
+                    data-search-highlight="true"
+                    data-show-print="true"
                     data-pagination="true"
                     data-side-pagination="client"
                     data-show-columns="true"
@@ -978,6 +986,8 @@
                     data-pagination="true"
                     data-id-table="usersHistoryTable"
                     data-search="true"
+                    data-search-highlight="true"
+                    data-show-print="true"
                     data-side-pagination="server"
                     data-show-columns="true"
                     data-show-fullscreen="true"
@@ -1030,6 +1040,8 @@
                     data-bulk-button-id="#bulkLocationsEditButton"
                     data-bulk-form-id="#locationsBulkForm"
                     data-search="true"
+                    data-search-highlight="true"
+                    data-show-print="true"
                     data-side-pagination="server"
                     data-show-columns="true"
                     data-show-fullscreen="true"
@@ -1062,6 +1074,8 @@
                       data-bulk-button-id="#bulkUserEditButton"
                       data-bulk-form-id="#usersBulkForm"
                       data-search="true"
+                      data-search-highlight="true"
+                      data-show-print="true"
                       data-side-pagination="server"
                       data-show-columns="true"
                       data-show-fullscreen="true"

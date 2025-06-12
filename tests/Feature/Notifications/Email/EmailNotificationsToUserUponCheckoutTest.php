@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 #[Group('notifications')]
-class EmailNotificationsUponCheckoutTest extends TestCase
+class EmailNotificationsToUserUponCheckoutTest extends TestCase
 {
     private Asset $asset;
     private AssetModel $assetModel;
@@ -85,44 +85,6 @@ class EmailNotificationsUponCheckoutTest extends TestCase
         $this->fireCheckoutEvent();
 
         Mail::assertNothingSent();
-    }
-
-    public function test_admin_alert_email_sends()
-    {
-        $this->settings->enableAdminCC('cc@example.com');
-
-        $this->category->update(['checkin_email' => true]);
-
-        $this->fireCheckoutEvent();
-
-        Mail::assertSent(CheckoutAssetMail::class, function (CheckoutAssetMail $mail) {
-            return $mail->hasCc('cc@example.com');
-        });
-    }
-
-    public function test_admin_alert_email_still_sent_when_category_is_not_set_to_send_email_to_user()
-    {
-        $this->settings->enableAdminCC('cc@example.com');
-
-        $this->fireCheckoutEvent();
-
-        Mail::assertSent(CheckoutAssetMail::class, function ($mail) {
-            return $mail->hasTo('cc@example.com');
-        });
-    }
-
-    public function test_admin_alert_email_still_sent_when_user_has_no_email_address()
-    {
-        $this->settings->enableAdminCC('cc@example.com');
-
-        $this->category->update(['checkin_email' => true]);
-        $this->user->update(['email' => null]);
-
-        $this->fireCheckoutEvent();
-
-        Mail::assertSent(CheckoutAssetMail::class, function ($mail) {
-            return $mail->hasTo('cc@example.com');
-        });
     }
 
     private function fireCheckoutEvent(): void

@@ -69,15 +69,15 @@ class CheckoutableListener
             return;
         }
 
+        $acceptance = $this->getCheckoutAcceptance($event);
+
         $shouldSendEmailToUser = $this->shouldSendCheckoutEmailToUser($event->checkoutable);
-        $shouldSendEmailToAlertAddress = $this->shouldSendEmailToAlertAddress();
+        $shouldSendEmailToAlertAddress = $this->shouldSendEmailToAlertAddress($acceptance);
         $shouldSendWebhookNotification = $this->shouldSendWebhookNotification();
 
         if (!$shouldSendEmailToUser && !$shouldSendEmailToAlertAddress && !$shouldSendWebhookNotification) {
             return;
         }
-
-        $acceptance = $this->getCheckoutAcceptance($event);
 
         if ($shouldSendEmailToUser || $shouldSendEmailToAlertAddress) {
             $mailable = $this->getCheckoutMailType($event, $acceptance);
@@ -419,9 +419,19 @@ class CheckoutableListener
         return false;
     }
 
-    private function shouldSendEmailToAlertAddress(): bool
+    private function shouldSendEmailToAlertAddress($acceptance = null): bool
     {
-        return Setting::getSettings() && Setting::getSettings()->admin_cc_email;
+        $setting = Setting::getSettings();
+
+        if (!$setting) {
+            return false;
+        }
+
+        if (is_null($acceptance) && !$setting->admin_cc_always) {
+            return false;
+        }
+
+        return (bool) $setting->admin_cc_email;
     }
 
     private function getFormattedAlertAddresses(): array
