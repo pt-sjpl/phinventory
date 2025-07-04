@@ -281,6 +281,7 @@ class BulkAssetsController extends Controller
             || ($request->filled('null_expected_checkin_date'))
             || ($request->filled('null_next_audit_date'))
             || ($request->filled('null_asset_eol_date'))
+            || ($request->filled('null_notes'))
             || ($request->anyFilled($custom_field_columns))
             || ($request->anyFilled(array_keys($null_custom_fields_inputs)))
 
@@ -305,7 +306,8 @@ class BulkAssetsController extends Controller
                     ->conditionallyAddItem('supplier_id')
                     ->conditionallyAddItem('warranty_months')
                     ->conditionallyAddItem('next_audit_date')
-                    ->conditionallyAddItem('asset_eol_date');
+                    ->conditionallyAddItem('asset_eol_date')
+                    ->conditionallyAddItem('notes');
                     foreach ($custom_field_columns as $key => $custom_field_column) {
                         $this->conditionallyAddItem($custom_field_column); 
                    }
@@ -360,6 +362,10 @@ class BulkAssetsController extends Controller
                     if ($request->input('calc_eol')=='1') {
                         $this->update_array['eol_explicit'] = 0;
                     }
+                }
+
+                if ($request->input('null_notes')=='1') {
+                    $this->update_array['notes'] = null;
                 }
 
 
