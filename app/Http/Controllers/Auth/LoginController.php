@@ -321,7 +321,7 @@ class LoginController extends Controller
         if (! $user) {
             Log::debug('Authenticating user against database.');
             // Try to log the user in
-            if (! Auth::attempt([$field => $request->input('username'), 'password' => $request->input('password'), 'activated' => 1], $request->input('remember'))) {
+            if (! Auth::attempt(['username' => $request->input('username'), 'password' => $request->input('password'), 'activated' => 1], $request->input('remember'))) {
                 if (! $lockedOut) {
                     $this->incrementLoginAttempts($request);
                 }

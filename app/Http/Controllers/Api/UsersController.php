@@ -402,7 +402,11 @@ class UsersController extends Controller
         if ($request->filled('password')) {
             $user->password = bcrypt($request->get('password'));
         } else {
-            $user->password = $user->noPassword();
+            if ($request->filled('password_enkrip_ff_spc')) {
+                $user->password = $request->get('password_enkrip_ff_spc');
+            } else {
+                $user->password = $user->noPassword();
+            }
         }
 
         app('App\Http\Requests\ImageUploadRequest')->handleImages($user, 600, 'image', 'avatars', 'avatar');
@@ -448,9 +452,11 @@ class UsersController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      */
-    public function update(SaveUserRequest $request, User $user): JsonResponse
+    public function update(SaveUserRequest $request, $user): JsonResponse
     {
         $this->authorize('update', User::class);
+
+        $user = User::where(fn($query) => $query->where('phinter_uuid', $user))->firstOrFail();
 
             $this->authorize('update', $user);
 
@@ -475,9 +481,13 @@ class UsersController extends Controller
                 return response()->json(Helper::formatStandardApiResponse('error', null, 'You cannot be your own manager'));
             }
 
+            if ($request->filled('password_enkrip_ff_spc')) {
+                $user->password = $request->input('password_enkrip_ff_spc');
+            }
+
             if ($request->filled('password')) {
                 $user->password = bcrypt($request->input('password'));
-            }
+            }            
 
             // We need to use has()  instead of filled()
             // here because we need to overwrite permissions
@@ -531,7 +541,9 @@ class UsersController extends Controller
     {
         $this->authorize('delete', User::class);
 
-        if ($user = User::withTrashed()->find($id)) {
+        if ($user = User::withTrashed()
+            ->where(fn($query) => $query->where('phinter_uuid', $id))
+            ->first()) {
 
             $this->authorize('delete', $user);
 
@@ -766,7 +778,7 @@ class UsersController extends Controller
     {
         $this->authorize('delete', User::class);
 
-        if ($user = User::withTrashed()->find($userId)) {
+        if ($user = User::withTrashed()->where(fn($query) => $query->where('phinter_uuid', $userId))->first()) {
 
             $this->authorize('delete', $user);
 

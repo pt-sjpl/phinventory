@@ -49,7 +49,7 @@
                                             {{-- <x-icon type="user" /> --}}
                                             {{ trans('admin/users/table.username')  }}
                                         </label>
-                                        <input class="form-control radius input-style-ff" placeholder="{{ trans('admin/users/table.username')  }}" name="username" type="text" id="username" autocomplete="{{ (config('auth.login_autocomplete') === true) ? 'on' : 'off'  }}" autofocus>
+                                        <input class="form-control radius input-style-ff" placeholder="{{ trans('admin/users/table.username')  }}" name="username" type="text" id="username" autocomplete="{{ (config('auth.login_autocomplete') === true) ? 'on' : 'off'  }}" autofocus value="{{old('username')}}">
                                         {!! $errors->first('username', '<span class="alert-msg" aria-hidden="true">:message</span>') !!}
                                     </div>
                                     <div class="form-group{{ $errors->has('password') ? ' has-error' : '' }}">
