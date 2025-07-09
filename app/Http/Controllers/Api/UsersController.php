@@ -456,7 +456,7 @@ class UsersController extends Controller
     {
         $this->authorize('update', User::class);
 
-        $user = User::where(fn($query) => $query->where('phinter_uuid', $user))->firstOrFail();
+        $user = User::where(fn($query) => $query->where('username', $user))->firstOrFail();
 
             $this->authorize('update', $user);
 
@@ -542,7 +542,7 @@ class UsersController extends Controller
         $this->authorize('delete', User::class);
 
         if ($user = User::withTrashed()
-            ->where(fn($query) => $query->where('phinter_uuid', $id))
+            ->where(fn($query) => $query->where('username', $id))
             ->first()) {
 
             $this->authorize('delete', $user);
@@ -778,7 +778,7 @@ class UsersController extends Controller
     {
         $this->authorize('delete', User::class);
 
-        if ($user = User::withTrashed()->where(fn($query) => $query->where('phinter_uuid', $userId))->first()) {
+        if ($user = User::withTrashed()->where(fn($query) => $query->where('username', $userId))->first()) {
 
             $this->authorize('delete', $user);
 

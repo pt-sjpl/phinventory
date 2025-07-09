@@ -43,7 +43,6 @@ class User extends SnipeModel implements AuthenticatableContract, AuthorizableCo
     protected $injectUniqueIdentifier = true;
 
     protected $fillable = [
-        'phinter_uuid',
         'activated',
         'address',
         'city',

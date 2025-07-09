@@ -314,14 +314,10 @@ class LoginController extends Controller
         }
 
         // If the user wasn't authenticated via LDAP, skip to local auth
-
-        // Determine if the login field is an email address.
-        $field = filter_var($request->input('username'), FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-
         if (! $user) {
             Log::debug('Authenticating user against database.');
             // Try to log the user in
-            if (! Auth::attempt([$field => $request->input('username'), 'password' => $request->input('password'), 'activated' => 1], $request->input('remember'))) {
+            if (! Auth::attempt(['username' => $request->input('username'), 'password' => $request->input('password'), 'activated' => 1], $request->input('remember'))) {
                 if (! $lockedOut) {
                     $this->incrementLoginAttempts($request);
                 }
