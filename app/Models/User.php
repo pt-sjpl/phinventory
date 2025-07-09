@@ -249,7 +249,7 @@ class User extends SnipeModel implements AuthenticatableContract, AuthorizableCo
 
 
     /**
-     * Checks if the can edit their own profile
+     * Checks if the user can edit their own profile
      *
      * @author A. Gianotto <snipe@snipe.net>
      * @since [v6.3.4]

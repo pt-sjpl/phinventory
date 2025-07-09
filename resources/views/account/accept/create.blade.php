@@ -43,7 +43,7 @@
             <div class="col-sm-12 col-sm-offset-1 col-md-10 col-md-offset-1">
                 <div class="panel box box-default">
                     <div class="box-body">
-                        <div class="col-md-12">
+                        <div class="col-md-12" style="padding-top: 20px;">
                         @if ($acceptance->checkoutable->getEula())
                             <div id="eula_div" style="padding-bottom: 20px">
                                 {!!  $acceptance->checkoutable->getEula() !!}
@@ -87,6 +87,15 @@
                                     </div>
                                 </div>
                             </div>
+
+                            @if (auth()->user()->email!='')
+                                <div class="col-md-12" style="padding-top: 20px; display: none;" id="toggleShow">
+                                    <label class="form-control">
+                                        <input type="checkbox" value="1" name="send_copy" id="send_copy" checked="checked" aria-label="send_copy">
+                                        {{ trans('mail.send_pdf_copy') }} ({{ auth()->user()->email }})
+                                    </label>
+                                </div>
+                            @endif
                         @endif
 
                     </div> <!-- / box-body -->
@@ -103,6 +112,9 @@
 @section('moar_scripts')
 
     <script nonce="{{ csrf_token() }}">
+
+
+
 
         var wrapper = document.getElementById("signature-pad"),
             clearButton = wrapper.querySelector("[data-action=clear]"),
@@ -141,6 +153,17 @@
                 $('#signature_output').val(signaturePad.toDataURL());
             }
         });
+
+        $('[name="asset_acceptance"]').on('change', function(){
+            if ($(this).is(':checked') && $(this).attr('id') == 'accepted' ) {
+                $("#toggleShow").show();
+            }
+            else{
+                $("#toggleShow").hide();
+            }
+
+        });
+
 
 
     </script>
