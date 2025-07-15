@@ -346,6 +346,8 @@ return [
     'audit_overdue'         => 'Overdue for Audit',
     'accept'                => 'Accept :asset',
     'i_accept'              => 'I accept',
+    'i_decline_item'        => 'Decline this item',
+    'i_accept_item'         => 'Accept this item',
     'i_decline'             => 'I decline',
     'accept_decline'        => 'Accept/Decline',
     'sign_tos'              => 'Sign below to indicate that you agree to the terms of service:',

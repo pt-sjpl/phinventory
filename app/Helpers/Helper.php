@@ -870,7 +870,7 @@ class Helper
         $filetype = @finfo_file($finfo, $file);
         finfo_close($finfo);
 
-        if (($filetype == 'image/jpeg') || ($filetype == 'image/jpg') || ($filetype == 'image/png') || ($filetype == 'image/bmp') || ($filetype == 'image/gif') || ($filetype == 'image/avif') || ($filetype == 'image/webp') || ($filetype == 'video/mp4') || ($filetype == 'video/quicktime') || ($filetype == 'video/mpeg') || ($filetype == 'video/ogg') || ($filetype == 'video/webm') || ($filetype == 'video/x-msvide')) {
+        if (($filetype == 'image/jpeg') || ($filetype == 'image/jpg') || ($filetype == 'image/png') || ($filetype == 'image/bmp') || ($filetype == 'image/gif') || ($filetype == 'image/avif') || ($filetype == 'image/webp')) {
             return $filetype;
         }
 
@@ -878,12 +878,33 @@ class Helper
     }
 
     /**
-     * Check if the file is an image, so we can show a preview
+     * Check if the file is a video, so we can show a preview
      *
-     * @author [A. Gianotto] [<snipe@snipe.net>]
-     * @since [v3.0]
      * @param File $file
      * @return string | Boolean
+     * @author [B. Wetherington] [<bwetherington@grokability.com>]
+     * @since [v8.1.18]
+     */
+    public static function checkUploadIsVideo($file)
+    {
+        $finfo = @finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension
+        $filetype = @finfo_file($finfo, $file);
+        finfo_close($finfo);
+
+        if (($filetype == 'video/mp4') || ($filetype == 'video/quicktime') || ($filetype == 'video/mpeg') || ($filetype == 'video/ogg') || ($filetype == 'video/webm') || ($filetype == 'video/x-msvide')) {
+            return $filetype;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the file is audio, so we can show a preview
+     *
+     * @param File $file
+     * @return string | Boolean
+     * @author [A. Gianotto] [<snipe@snipe.net>]
+     * @since [v3.0]
      */
     public static function checkUploadIsAudio($file)
     {

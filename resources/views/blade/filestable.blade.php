@@ -73,8 +73,17 @@
 
                     @if (($file->filename) && (Storage::exists($filepath.$file->filename)))
                         @if (Helper::checkUploadIsImage($file->get_src(str_plural(strtolower(class_basename(get_class($object)))))))
-                            <a href="{{ route($showfile_routename, [$object->id, $file->id, 'inline' => 'true']) }}" data-toggle="lightbox" data-type="image">
-                                <img src="{{ route($showfile_routename, [$object->id, $file->id, 'inline' => 'true']) }}" class="img-thumbnail" style="max-width: 50px;">
+                            <a href="{{ route($showfile_routename, [$object->id, $file->id, 'inline' => 'true']) }}"
+                               data-toggle="lightbox" data-type="image">
+                                <img src="{{ route($showfile_routename, [$object->id, $file->id, 'inline' => 'true']) }}"
+                                     class="img-thumbnail" style="max-width: 50px;">
+                            </a>
+                        @elseif (Helper::checkUploadIsVideo($file->get_src(str_plural(strtolower(class_basename(get_class($object)))))))
+                            <a href="{{ route($showfile_routename, [$object->id, $file->id, 'inline' => 'true']) }}"
+                               data-toggle="lightbox" data-type="video">
+                                <video style="max-width: 50px;">
+                                    <source src="{{ route($showfile_routename, [$object->id, $file->id, 'inline' => 'true']) }}">
+                                </video>
                             </a>
                         @elseif (Helper::checkUploadIsAudio($file->get_src(str_plural(strtolower(class_basename(get_class($object)))))))
                             <audio controls>
