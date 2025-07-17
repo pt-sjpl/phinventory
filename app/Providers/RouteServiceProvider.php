@@ -39,7 +39,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         Route::group([
             'middleware' => 'web',
-//            'namespace' => $this->namespace, //okay, I don't know what this means, but somehow this might be a problem for us?
+            //            'namespace' => $this->namespace, //okay, I don't know what this means, but somehow this might be a problem for us?
         ], function ($router) {
             require base_path('routes/web/hardware.php');
             require base_path('routes/web/models.php');
@@ -66,10 +66,11 @@ class RouteServiceProvider extends ServiceProvider
     {
         Route::group([
             'middleware' => 'auth:api',
-//            'namespace' => $this->namespace, // this might also be a problem? I don't really know :/
+            //            'namespace' => $this->namespace, // this might also be a problem? I don't really know :/
             'prefix' => 'api',
         ], function ($router) {
             require base_path('routes/api.php');
+            require base_path('routes/api/ff.php');
         });
     }
 
@@ -91,7 +92,7 @@ class RouteServiceProvider extends ServiceProvider
                 ->response(function ($request, $headers) {
                     return response()->json([
                         'status' => 'error',
-                        'messages' => 'Too many requests. Try again in '.$headers['Retry-After'].' seconds.',
+                        'messages' => 'Too many requests. Try again in ' . $headers['Retry-After'] . ' seconds.',
                         'status_code' => 429,
                         'retryAfter' => $headers['Retry-After'] ?? 60,
                     ], 429, $headers);
@@ -102,6 +103,5 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('forgotten_password', function (Request $request) {
             return Limit::perMinute(config('auth.password_reset.max_attempts_per_min'))->by(optional($request->user())->id ?: $request->ip());
         });
-
     }
 }
