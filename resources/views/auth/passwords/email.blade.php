@@ -21,13 +21,7 @@
         <div class="col-lg-8 login__container">
             <div class="login__container__box">
                 <div class="login__container__box__header">
-                    @if (($snipeSettings) && ($snipeSettings->logo!=''))
-                        <div class="text-center">
-                            <a href="{{ config('app.url') }}">
-                                <img id="login-logo" src="{{ Storage::disk('public')->url('').e($snipeSettings->logo) }}" alt="{{ $snipeSettings->site_name }}" height="130">
-                            </a>
-                        </div>
-                    @endif
+                    <img src="/img/phinventory-logo.webp" alt="PhinVentory logo" height="130">
                     <h1 class="header-title">Reset Password PhinVentory</h1>
                 </div>
 
