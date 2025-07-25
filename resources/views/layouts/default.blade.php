@@ -922,7 +922,7 @@ dir="{{ Helper::determineLanguageDirection() }}">
 
                 <div class="1hidden-xs pull-left">
                     <div class="pull-left">
-                         {!! trans('general.footer_credit') !!}
+                         {{-- {!! trans('general.footer_credit') !!} --}}
                     </div>
                     <div class="pull-right">
                     @if ($snipeSettings->version_footer!='off')
