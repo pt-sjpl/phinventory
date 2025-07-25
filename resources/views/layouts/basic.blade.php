@@ -41,10 +41,12 @@
         </style>
     @endif
 
+    @stack('ff-top')
 </head>
 
-<body class="hold-transition login-page">
+<body class="hold-transition">
 
+    @section('login-logo')
     @if (($snipeSettings) && ($snipeSettings->logo!=''))
         <div class="text-center">
             <a href="{{ config('app.url') }}">
@@ -52,14 +54,15 @@
             </a>
         </div>
     @endif
+    @show
   <!-- Content -->
   @yield('content')
 
-    <div class="text-center" style="padding-top: 100px;">
-        @if (($snipeSettings) && ($snipeSettings->privacy_policy_link!=''))
-        <a target="_blank" rel="noopener" href="{{  $snipeSettings->privacy_policy_link }}" target="_new">{{ trans('admin/settings/general.privacy_policy') }}</a>
+    @if (($snipeSettings) && ($snipeSettings->privacy_policy_link!=''))
+        <div class="text-center" style="position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 0;">
+            <a target="_blank" rel="noopener" href="{{  $snipeSettings->privacy_policy_link }}" target="_new">{{ trans('admin/settings/general.privacy_policy') }}</a>
+        </div>
     @endif
-    </div>
 
     {{-- Javascript files --}}
     <script src="{{ url(mix('js/dist/all.js')) }}" nonce="{{ csrf_token() }}"></script>
