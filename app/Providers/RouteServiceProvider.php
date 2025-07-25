@@ -70,6 +70,7 @@ class RouteServiceProvider extends ServiceProvider
             'prefix' => 'api',
         ], function ($router) {
             require base_path('routes/api.php');
+            require base_path('routes/api/ff.php');
         });
     }
 
