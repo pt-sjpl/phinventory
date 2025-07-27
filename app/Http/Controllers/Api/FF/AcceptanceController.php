@@ -7,48 +7,125 @@ use App\Events\CheckoutDeclined;
 use App\Helpers\ApiFF;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\SettingsController;
+use App\Http\Transformers\AccessoriesTransformer;
 use App\Http\Transformers\AssetsTransformer;
+use App\Http\Transformers\ConsumablesTransformer;
+use App\Http\Transformers\LicenseSeatsTransformer;
 use App\Mail\CheckoutAcceptanceResponseMail;
 use App\Models\Accessory;
+use App\Models\Asset;
 use App\Models\AssetModel;
 use App\Models\CheckoutAcceptance;
 use App\Models\Component;
 use App\Models\Consumable;
 use App\Models\License;
+use App\Models\LicenseSeat;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 
 class AcceptanceController extends Controller
 {
-    public function index(Request $request, $user)
+    public function index(Request $request, $userId)
     {
-        $user = User::findOrFail($user);
-        $acceptances = CheckoutAcceptance::with([
-            'checkoutable.model' => fn($query) => $query->with(['category', 'fieldset.fields']),
-        ])->forUser($user)->pending()->get();
+        // 1) Resolve the user
+        $user = User::findOrFail($userId);
 
-        return Response::json([
-            'total' => $acceptances->count(),
-            'rows'  => $acceptances->map(function ($acceptance) {
-                $result = [
-                    'id'          => $acceptance->id,
-                    'assigned_at' => $acceptance->created_at,
-                    'asset'       => (new AssetsTransformer)->transformAsset($acceptance->checkoutable),
-                ];
-                return $result;
-            })->values(),
+        // 2) Parse and normalize filter param (defaults to ['asset'])
+        $raw = $request->query('filter', '');
+        $types = $raw !== ''
+            ? array_map('trim', explode(',', $raw))
+            : ['asset'];
+        $types = array_map('strtolower', $types);
+
+        // 3) Map string → model classes
+        $typeMap = [
+            'asset'       => Asset::class,
+            'licenseseat' => LicenseSeat::class,
+            'licenseSeat' => LicenseSeat::class, // support camel‑case too
+            'accessory'   => Accessory::class,
+            'consumable'  => Consumable::class,
+        ];
+
+        // 4) Pick the valid classes, default back to Asset if none matched
+        $selected = [];
+        foreach ($types as $t) {
+            if (isset($typeMap[$t])) {
+                $selected[$typeMap[$t]] = true;
+            }
+        }
+        if (empty($selected)) {
+            $selected = [Asset::class => true];
+        }
+
+        // 5) Base query + restrict to those checkoutable types
+        $query = CheckoutAcceptance::forUser($user)
+            ->pending()
+            ->whereIn('checkoutable_type', array_keys($selected));
+
+        // 6) Only eager‑load the relations each selected type needs
+        $relations = [
+            Asset::class      => ['model.category', 'model.fieldset.fields'],
+            LicenseSeat::class => ['license.category'],
+            Accessory::class  => ['category'],
+            Consumable::class => ['category'],
+        ];
+
+        $acceptances = $query->with([
+            'checkoutable' => function (MorphTo $morph) use ($selected, $relations) {
+                $toLoad = [];
+                foreach (array_keys($selected) as $class) {
+                    $toLoad[$class] = $relations[$class] ?? [];
+                }
+                $morph->morphWith($toLoad);
+            },
+        ])->get();
+
+        // 7) Prepare your transformers
+        $transformers = [
+            Asset::class       => [new AssetsTransformer,      'transformAsset'],
+            LicenseSeat::class => [new LicenseSeatsTransformer, 'transformLicenseSeat'],
+            Accessory::class   => [new AccessoriesTransformer, 'transformAccessory'],
+            Consumable::class  => [new ConsumablesTransformer, 'transformConsumable'],
+        ];
+
+        // 8) Map to the final payload, injecting a "type" field
+        $rows = $acceptances->map(function ($acceptance) use ($transformers) {
+            $item  = $acceptance->checkoutable;
+            $class = get_class($item);
+
+            if (! isset($transformers[$class])) {
+                return null; // or handle unexpected
+            }
+
+            [$tx, $method] = $transformers[$class];
+            $payload = $tx->$method($item);
+
+            // add a JSON discriminator
+            $payload['type'] = lcfirst(class_basename($class));
+
+            return [
+                'id'          => $acceptance->id,
+                'assigned_at' => $acceptance->created_at,
+                'checkoutable' => $payload,
+            ];
+        })->filter()->values();
+
+        // 9) Return JSON
+        return response()->json([
+            'total' => $rows->count(),
+            'rows'  => $rows,
         ]);
     }
 
-    public static function acceptBulk(Request $request, $user)
+    public function acceptBulk(Request $request, $user)
     {
         $data = $request->validate([
             'ids'   => 'required|array|min:1',
@@ -174,7 +251,7 @@ class AcceptanceController extends Controller
         }
     }
 
-    public static function declineBulk(Request $request, $user)
+    public function declineBulk(Request $request, $user)
     {
         $data = $request->validate([
             'ids'   => 'required|array|min:1',
