@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Eloquent\Collection;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class AssetsTransformer
 {
@@ -145,8 +146,27 @@ class AssetsTransformer
 
                 $array['custom_fields'] = $fields_array;
             }
+
+            $array['custom_fieldsets'] = $asset
+                ?->model
+                ?->fieldset
+                ?->fields
+                ->map(function ($field) use ($asset) {
+                    $label = $field->name;
+                    $slug  = Str::slug($field->name, '_');
+                    $col   = "_snipeit_{$slug}_{$field->id}";
+                    return [
+                        'key' => $slug,
+                        'label' => $label,
+                        'value' => $asset?->$col,
+                    ];
+                })
+                ->values()
+                ->toArray();
+
         } else {
             $array['custom_fields'] = new \stdClass; // HACK to force generation of empty object instead of empty list
+            $array['custom_fieldsets'] = new \stdClass;
         }
 
         $permissions_array['available_actions'] = [

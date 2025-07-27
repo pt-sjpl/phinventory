@@ -9,6 +9,7 @@ use App\Models\Company;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 
 class ReportsController extends Controller
 {
@@ -48,7 +49,8 @@ class ReportsController extends Controller
         }
 
         if ($request->filled('action_type')) {
-            $actionlogs = $actionlogs->where('action_type', '=', $request->input('action_type'));
+            $action_list = Str::of($request->input('action_type'))->explode(',')->map(fn($item) => trim($item))->toArray();
+            $actionlogs = $actionlogs->whereIn('action_type', $action_list);
         }
 
         if ($request->filled('created_by')) {
