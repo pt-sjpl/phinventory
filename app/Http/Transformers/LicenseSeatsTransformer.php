@@ -62,6 +62,17 @@ class LicenseSeatsTransformer
             'delete' => Gate::allows('delete', License::class),
         ];
 
+        if ($seat->relationLoaded('license') && $seat->license) {
+            $array['license'] = [
+                'name'         => e($seat->license->name),
+                'key'          => e($seat->license->key),
+                'category'          => $seat->license->category,
+                'expires_at'   => Helper::getFormattedDateObject($seat->license->expires_at, 'datetime'),
+                'seats_total'  => (int) $seat->license->seats,
+                'reassignable' => (bool)$seat->license->reassignable,
+            ];
+        }
+
         $array += $permissions_array;
 
         return $array;
