@@ -32,6 +32,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use TypeError;
+use Illuminate\Support\Str;
 
 /**
  * This class controls all actions related to assets for
@@ -129,7 +130,15 @@ class AssetsController extends Controller
             }
 
             if (($asset_tags) && (array_key_exists($a, $asset_tags))) {
-                $asset->asset_tag = $asset_tags[$a];
+                $asset_existed = Asset::where('asset_tag', $asset_tags[$a])->orderByDesc('asset_tag')->first();
+                if ($asset_existed) {
+                    $tag = $asset_existed->asset_tag;
+                    $nextInt = (int) $tag + 1;
+                    $nextTag = Str::padLeft($nextInt, strlen($tag), '0');
+                    $asset->asset_tag = $nextTag;
+                } else {
+                     $asset->asset_tag = $asset_tags[$a];
+                }
             }
 
             $asset->company_id              = Company::getIdForCurrentUser($request->input('company_id'));
