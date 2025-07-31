@@ -1103,6 +1103,7 @@ class Helper
             $tmp_date = new Carbon($date);
 
             if ($type == 'datetime') {
+                $dt['datetime_iso'] = $tmp_date;
                 $dt['datetime'] = $tmp_date->format('Y-m-d H:i:s');
                 $dt['formatted'] = $tmp_date->format($settings->date_display_format.' '.$settings->time_display_format);
             } else {

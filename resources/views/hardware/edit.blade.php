@@ -23,7 +23,7 @@
 
 
   <!-- Asset Tag -->
-  <div class="form-group {{ $errors->has('asset_tag') ? ' has-error' : '' }}">
+  <div class="form-group {{ $errors->has('asset_tag') ? ' has-error' : '' }}" style="display: none;">
     <label for="asset_tag" class="col-md-3 control-label">{{ trans('admin/hardware/form.tag') }}</label>
 
 
