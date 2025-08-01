@@ -119,151 +119,162 @@ class AssetsController extends Controller
         $serials = $request->input('serials');
         $asset = null;
 
-        for ($a = 1; $a <= count($asset_tags); $a++) {
-            $asset = new Asset();
-            $asset->model()->associate(AssetModel::find($request->input('model_id')));
-            $asset->name = $request->input('name');
+        // Acquire a named lock (wait up to 5s)
+        $lockName = 'asset_tag_generation';
+        DB::statement("SELECT GET_LOCK(?, 5)", [$lockName]);
 
-            // Check for a corresponding serial
-            if (($serials) && (array_key_exists($a, $serials))) {
-                $asset->serial = $serials[$a];
-            }
+        try {
+            $response = DB::transaction(function() use ($request, $asset_tags, $serials, $settings, &$successes, &$failures, &$asset,) {
+                for ($a = 1; $a <= count($asset_tags); $a++) {
+                    $asset = new Asset();
+                    $asset->model()->associate(AssetModel::find($request->input('model_id')));
+                    $asset->name = $request->input('name');
 
-            if (($asset_tags) && (array_key_exists($a, $asset_tags))) {
-                $asset_existed = Asset::where('asset_tag', $asset_tags[$a])->orderByDesc('asset_tag')->first();
-                if ($asset_existed) {
-                    $tag = $asset_existed->asset_tag;
-                    $nextInt = (int) $tag + 1;
-                    $nextTag = Str::padLeft($nextInt, strlen($tag), '0');
-                    $asset->asset_tag = $nextTag;
-                } else {
-                     $asset->asset_tag = $asset_tags[$a];
-                }
-            }
+                    // Check for a corresponding serial
+                    if (($serials) && (array_key_exists($a, $serials))) {
+                        $asset->serial = $serials[$a];
+                    }
+                        // lock any rows whose tag starts with our base
+                    $latest = Asset::lockForUpdate()->orderByDesc('asset_tag')->first();
+                    $nextInt = (int) $latest->asset_tag + 1;
+                    $asset->asset_tag = Str::padLeft($nextInt, strlen($latest->asset_tag), '0');
 
-            $asset->company_id              = Company::getIdForCurrentUser($request->input('company_id'));
-            $asset->model_id                = $request->input('model_id');
-            $asset->order_number            = $request->input('order_number');
-            $asset->notes                   = $request->input('notes');
-            $asset->created_by              = auth()->id();
-            $asset->status_id               = request('status_id');
-            $asset->warranty_months         = request('warranty_months', null);
-            $asset->purchase_cost           = request('purchase_cost');
-            $asset->purchase_date           = request('purchase_date', null);
-            $asset->asset_eol_date          = request('asset_eol_date', null);
-            $asset->assigned_to             = request('assigned_to', null);
-            $asset->supplier_id             = request('supplier_id', null);
-            $asset->requestable             = request('requestable', 0);
-            $asset->rtd_location_id         = request('rtd_location_id', null);
-            $asset->byod                    = request('byod', 0);
+                    $asset->company_id              = Company::getIdForCurrentUser($request->input('company_id'));
+                    $asset->model_id                = $request->input('model_id');
+                    $asset->order_number            = $request->input('order_number');
+                    $asset->notes                   = $request->input('notes');
+                    $asset->created_by              = auth()->id();
+                    $asset->status_id               = request('status_id');
+                    $asset->warranty_months         = request('warranty_months', null);
+                    $asset->purchase_cost           = request('purchase_cost');
+                    $asset->purchase_date           = request('purchase_date', null);
+                    $asset->asset_eol_date          = request('asset_eol_date', null);
+                    $asset->assigned_to             = request('assigned_to', null);
+                    $asset->supplier_id             = request('supplier_id', null);
+                    $asset->requestable             = request('requestable', 0);
+                    $asset->rtd_location_id         = request('rtd_location_id', null);
+                    $asset->byod                    = request('byod', 0);
 
-            if (! empty($settings->audit_interval)) {
-                $asset->next_audit_date = Carbon::now()->addMonths((int) $settings->audit_interval)->toDateString();
-            }
+                    if (! empty($settings->audit_interval)) {
+                        $asset->next_audit_date = Carbon::now()->addMonths((int) $settings->audit_interval)->toDateString();
+                    }
 
-            // Set location_id to rtd_location_id ONLY if the asset isn't being checked out
-            if (!request('assigned_user') && !request('assigned_asset') && !request('assigned_location')) {
-                $asset->location_id = $request->input('rtd_location_id', null);
-            }
+                    // Set location_id to rtd_location_id ONLY if the asset isn't being checked out
+                    if (!request('assigned_user') && !request('assigned_asset') && !request('assigned_location')) {
+                        $asset->location_id = $request->input('rtd_location_id', null);
+                    }
 
-            // Create the image (if one was chosen.)
-            if ($request->has('image')) {
-                $asset = $request->handleImages($asset);
-            }
+                    // Create the image (if one was chosen.)
+                    if ($request->has('image')) {
+                        $asset = $request->handleImages($asset);
+                    }
 
-            // Update custom fields in the database.
-            // Validation for these fields is handled through the AssetRequest form request
-            $model = AssetModel::find($request->get('model_id'));
+                    // Update custom fields in the database.
+                    // Validation for these fields is handled through the AssetRequest form request
+                    $model = AssetModel::find($request->get('model_id'));
 
-            if (($model) && ($model->fieldset)) {
-                foreach ($model->fieldset->fields as $field) {
-                    if ($field->field_encrypted == '1') {
-                        if (Gate::allows('assets.view.encrypted_custom_fields')) {
-                            if (is_array($request->input($field->db_column))) {
-                                $asset->{$field->db_column} = Crypt::encrypt(implode(', ', $request->input($field->db_column)));
+                    if (($model) && ($model->fieldset)) {
+                        foreach ($model->fieldset->fields as $field) {
+                            if ($field->field_encrypted == '1') {
+                                if (Gate::allows('assets.view.encrypted_custom_fields')) {
+                                    if (is_array($request->input($field->db_column))) {
+                                        $asset->{$field->db_column} = Crypt::encrypt(implode(', ', $request->input($field->db_column)));
+                                    } else {
+                                        $asset->{$field->db_column} = Crypt::encrypt($request->input($field->db_column));
+                                    }
+                                }
                             } else {
-                                $asset->{$field->db_column} = Crypt::encrypt($request->input($field->db_column));
+                                if (is_array($request->input($field->db_column))) {
+                                    $asset->{$field->db_column} = implode(', ', $request->input($field->db_column));
+                                } else {
+                                    $asset->{$field->db_column} = $request->input($field->db_column);
+                                }
                             }
                         }
+                    }
+
+                    // Validate the asset before saving
+                    if ($asset->isValid() && $asset->save()) {
+                        $target = null;
+                        $location = null;
+
+                        if ($userId = request('assigned_user')) {
+                            $target = User::find($userId);
+
+                            if (!$target) {
+                                return redirect()->back()->withInput()->with('error', trans('admin/hardware/message.create.target_not_found.user'));
+                            }
+                            $location = $target->location_id;
+
+                        } elseif ($assetId = request('assigned_asset')) {
+                            $target = Asset::find($assetId);
+
+                            if (!$target) {
+                                return redirect()->back()->withInput()->with('error', trans('admin/hardware/message.create.target_not_found.asset'));
+                            }
+                            $location = $target->location_id;
+
+                        } elseif ($locationId = request('assigned_location')) {
+                            $target = Location::find($locationId);
+
+                            if (!$target) {
+                                return redirect()->back()->withInput()->with('error', trans('admin/hardware/message.create.target_not_found.location'));
+                            }
+                            $location = $target->id;
+                        }
+
+                        if (isset($target)) {
+                            $asset->checkOut($target, auth()->user(), date('Y-m-d H:i:s'), $request->input('expected_checkin', null), 'Checked out on asset creation', $request->get('name'), $location);
+                        }
+
+                        $successes[] = "<a href='" . route('hardware.show', $asset) . "' style='color: white;'>" . e($asset->asset_tag) . "</a>";
+
                     } else {
-                        if (is_array($request->input($field->db_column))) {
-                            $asset->{$field->db_column} = implode(', ', $request->input($field->db_column));
+                        $failures[] = join(",", $asset->getErrors()->all());
+                    }
+                }
+
+                session()->put(['redirect_option' => $request->get('redirect_option'),
+                        'checkout_to_type' => $request->get('checkout_to_type'),
+                        'other_redirect' =>  'model' ]);
+
+
+                if ($successes) {
+                    if ($failures) {
+                        //some succeeded, some failed
+                        return Helper::getRedirectOption($request, $asset->id, 'Assets') //FIXME - not tested
+                        ->with('success-unescaped', trans_choice('admin/hardware/message.create.multi_success_linked', $successes, ['links' => join(", ", $successes)]))
+                            ->with('warning', trans_choice('admin/hardware/message.create.partial_failure', $failures, ['failures' => join("; ", $failures)]));
+                    } else {
+                        if (count($successes) == 1) {
+                            //the most common case, keeping it so we don't have to make every use of that translation string be trans_choice'ed
+                            //and re-translated
+                            return Helper::getRedirectOption($request, $asset->id, 'Assets')
+                                ->with('success-unescaped', trans('admin/hardware/message.create.success_linked', ['link' => route('hardware.show', $asset), 'id', 'tag' => e($asset->asset_tag)]));
                         } else {
-                            $asset->{$field->db_column} = $request->input($field->db_column);
+                            //multi-success
+                            return Helper::getRedirectOption($request, $asset->id, 'Assets')
+                                ->with('success-unescaped', trans_choice('admin/hardware/message.create.multi_success_linked', $successes, ['links' => join(", ", $successes)]));
                         }
                     }
                 }
+
+                return redirect()->back()->withInput()->withErrors($asset->getErrors());
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            if (Str::contains($e->getMessage(), 'Duplicate entry') &&
+                Str::contains($e->getMessage(), 'for key \'assets_asset_tag_unique\'')) {
+                return redirect()->back()
+                                ->withInput()
+                                ->with('error', 'Asset tag collision—please try again.');
             }
-
-            // Validate the asset before saving
-            if ($asset->isValid() && $asset->save()) {
-                $target = null;
-                $location = null;
-
-                if ($userId = request('assigned_user')) {
-                    $target = User::find($userId);
-
-                    if (!$target) {
-                        return redirect()->back()->withInput()->with('error', trans('admin/hardware/message.create.target_not_found.user'));
-                    }
-                    $location = $target->location_id;
-
-                } elseif ($assetId = request('assigned_asset')) {
-                    $target = Asset::find($assetId);
-
-                    if (!$target) {
-                        return redirect()->back()->withInput()->with('error', trans('admin/hardware/message.create.target_not_found.asset'));
-                    }
-                    $location = $target->location_id;
-
-                } elseif ($locationId = request('assigned_location')) {
-                    $target = Location::find($locationId);
-
-                    if (!$target) {
-                        return redirect()->back()->withInput()->with('error', trans('admin/hardware/message.create.target_not_found.location'));
-                    }
-                    $location = $target->id;
-                }
-
-                if (isset($target)) {
-                    $asset->checkOut($target, auth()->user(), date('Y-m-d H:i:s'), $request->input('expected_checkin', null), 'Checked out on asset creation', $request->get('name'), $location);
-                }
-
-                $successes[] = "<a href='" . route('hardware.show', $asset) . "' style='color: white;'>" . e($asset->asset_tag) . "</a>";
-
-            } else {
-                $failures[] = join(",", $asset->getErrors()->all());
-            }
+            throw $e;
+        } finally {
+            // Release the lock no matter what
+            DB::statement("SELECT RELEASE_LOCK(?)", [$lockName]);
         }
 
-        session()->put(['redirect_option' => $request->get('redirect_option'),
-                       'checkout_to_type' => $request->get('checkout_to_type'),
-                       'other_redirect' =>  'model' ]);
-
-
-
-        if ($successes) {
-            if ($failures) {
-                //some succeeded, some failed
-                return Helper::getRedirectOption($request, $asset->id, 'Assets') //FIXME - not tested
-                ->with('success-unescaped', trans_choice('admin/hardware/message.create.multi_success_linked', $successes, ['links' => join(", ", $successes)]))
-                    ->with('warning', trans_choice('admin/hardware/message.create.partial_failure', $failures, ['failures' => join("; ", $failures)]));
-            } else {
-                if (count($successes) == 1) {
-                    //the most common case, keeping it so we don't have to make every use of that translation string be trans_choice'ed
-                    //and re-translated
-                    return Helper::getRedirectOption($request, $asset->id, 'Assets')
-                        ->with('success-unescaped', trans('admin/hardware/message.create.success_linked', ['link' => route('hardware.show', $asset), 'id', 'tag' => e($asset->asset_tag)]));
-                } else {
-                    //multi-success
-                    return Helper::getRedirectOption($request, $asset->id, 'Assets')
-                        ->with('success-unescaped', trans_choice('admin/hardware/message.create.multi_success_linked', $successes, ['links' => join(", ", $successes)]));
-                }
-            }
-
-        }
-
-        return redirect()->back()->withInput()->withErrors($asset->getErrors());
+        return $response;
     }
 
 
