@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Helpers\Helper;
 use App\Models\CustomField;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -21,7 +22,16 @@ class CustomFieldSetDefaultValuesForModel extends Component
     public function mount($model_id = null)
     {
         $this->model_id = $model_id;
-        $this->fieldset_id = $this->model?->fieldset_id;
+
+        $fieldsets = Helper::customFieldsetList();  
+        $keys      = array_keys($fieldsets);
+        $defaultFieldsetId = $keys[1] ?? $keys[0] ?? null;
+        if ($this->model) {
+            $this->fieldset_id = $this->model->fieldset_id ?? $defaultFieldsetId;
+        } else {
+            $this->fieldset_id = $defaultFieldsetId;
+        }
+
         $this->add_default_values = ($this->model?->defaultValues->count() > 0);
 
 
