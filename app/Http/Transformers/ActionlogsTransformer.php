@@ -166,7 +166,8 @@ class ActionlogsTransformer
                 'id' => (int) $actionlog->item->id,
                 'name' => ($actionlog->itemType()=='user') ? e($actionlog->item->getFullNameAttribute()) : e($actionlog->item->getDisplayNameAttribute()),
                 'type' => e($actionlog->itemType()),
-                'serial' =>e($actionlog->item->serial) ? e($actionlog->item->serial) : null
+                'serial' =>e($actionlog->item->serial) ? e($actionlog->item->serial) : null,
+                'image' => ($actionlog->itemType()==='asset') ? ($actionlog->item->getImageUrl() === false ? null : $actionlog->item->getImageUrl()) : null,
             ] : null,
             'location' => ($actionlog->location) ? [
                 'id' => (int) $actionlog->location->id,
