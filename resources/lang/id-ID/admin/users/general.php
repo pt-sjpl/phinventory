@@ -54,4 +54,7 @@ return [
     'all_assigned_list_generation' => 'Dihasilkan pada:',
     'email_user_creds_on_create' => 'Kirim kredensial pengguna ini melalui email?',
     'department_manager' => 'Department Manager',
+    'scan_user_qr_assignee' => 'Pindai kode QR pengguna untuk menetapkan penerima',
+    'user_not_found_from_qr' => 'User tidak ditemukan dari QR.',
+    'failed_fetch_user_from_api' => 'Gagal mengambil data user dari API.',
 ];

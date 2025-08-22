@@ -54,4 +54,7 @@ return [
     'all_assigned_list_generation' => 'Generated on:',
     'email_user_creds_on_create' => 'Email this user their credentials?',
     'department_manager' => 'Department Manager',
+    'scan_user_qr_assignee' => 'Scan a user QR code to set the assignee',
+    'user_not_found_from_qr' => 'User not found from the QR code.',
+    'failed_fetch_user_from_api' => 'Failed to fetch user data from the API.',
 ];
