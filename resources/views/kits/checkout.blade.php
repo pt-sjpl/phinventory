@@ -23,7 +23,7 @@
       <div class="box-body">
         <form class="form-horizontal" method="post" action="" autocomplete="off">
           {{ csrf_field() }}
-          @include ('partials.forms.edit.user-select', ['translated_name' => trans('general.select_user'), 'fieldname' => 'user_id', 'required'=> 'true'])
+          @include ('partials.forms.edit.user-select-scan-qr', ['translated_name' => trans('general.select_user'), 'fieldname' => 'user_id', 'required'=> 'true'])
 
           <!-- Checkout/Checkin Date -->
               <div class="form-group {{ $errors->has('checkout_at') ? 'error' : '' }}">
