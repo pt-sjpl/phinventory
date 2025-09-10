@@ -14,16 +14,16 @@
 <!-- parent -->
 @include ('partials.forms.edit.location-select', ['translated_name' => trans('admin/locations/table.parent'), 'fieldname' => 'parent_id'])
 
-<!-- Manager-->
-@include ('partials.forms.edit.user-select', ['translated_name' => trans('admin/users/table.manager'), 'fieldname' => 'manager_id'])
+{{-- <!-- Manager-->
+@include ('partials.forms.edit.user-select', ['translated_name' => trans('admin/users/table.manager'), 'fieldname' => 'manager_id']) --}}
 
 <!-- Company -->
 @include ('partials.forms.edit.company-select', ['translated_name' => trans('general.company'), 'fieldname' => 'company_id'])
 
-@include ('partials.forms.edit.phone')
-@include ('partials.forms.edit.fax')
+{{-- @include ('partials.forms.edit.phone') --}}
+{{-- @include ('partials.forms.edit.fax') --}}
 
-<!-- Currency -->
+{{-- <!-- Currency -->
 <div class="form-group {{ $errors->has('currency') ? ' has-error' : '' }}">
     <label for="currency" class="col-md-3 control-label">
         {{ trans('admin/locations/table.currency') }}
@@ -38,11 +38,11 @@
         @enderror
 
     </div>
-</div>
+</div> --}}
 
-@include ('partials.forms.edit.address')
+{{-- @include ('partials.forms.edit.address') --}}
 
-<!-- LDAP Search OU -->
+{{-- <!-- LDAP Search OU -->
 @if ($snipeSettings->ldap_enabled == 1)
     <div class="form-group {{ $errors->has('ldap_ou') ? ' has-error' : '' }}">
         <label for="ldap_ou" class="col-md-3 control-label">
@@ -58,7 +58,7 @@
             @enderror
         </div>
     </div>
-@endif
+@endif --}}
 
 
 @include ('partials.forms.edit.image-upload', ['image_path' => app('locations_upload_path')])

@@ -124,11 +124,10 @@ class AssetCheckinController extends Controller
 
         // Handle last checkin date
         $checkin_at = date('Y-m-d H:i:s');
-        if (($request->filled('checkin_at')) && ($request->get('checkin_at') != date('Y-m-d'))) {
-            $originalValues['action_date'] = $checkin_at;
-            $checkin_at = $request->get('checkin_at');
-
-        }
+        // if (($request->filled('checkin_at')) && ($request->get('checkin_at') != date('Y-m-d'))) {
+        //     $originalValues['action_date'] = $checkin_at;
+        //     $checkin_at = $request->get('checkin_at');
+        // }
         $asset->last_checkin = $checkin_at;
 
         $asset->licenseseats->each(function (LicenseSeat $seat) {

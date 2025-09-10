@@ -15,9 +15,9 @@
 @include ('partials.forms.edit.manufacturer-select', ['translated_name' => trans('general.manufacturer'), 'fieldname' => 'manufacturer_id'])
 {{-- @include ('partials.forms.edit.model_number')
 @include ('partials.forms.edit.depreciation') --}}
-@include ('partials.forms.edit.minimum_quantity')
+{{-- @include ('partials.forms.edit.minimum_quantity') --}}
 
-<!-- EOL -->
+{{-- <!-- EOL -->
 
 <div class="form-group {{ $errors->has('eol') ? ' has-error' : '' }}">
     <label for="eol" class="col-md-3 control-label">{{ trans('general.eol') }}</label>
@@ -32,14 +32,14 @@
     <div class="col-md-9 col-md-offset-3">
         {!! $errors->first('eol', '<span class="alert-msg" aria-hidden="true"><br><i class="fas fa-times"></i> :message</span>') !!}
     </div>
-</div>
+</div> --}}
 
 <!-- Custom Fieldset -->
 <!-- If $item->id is null we are cloning the model and we need the $model_id variable -->
 @livewire('custom-field-set-default-values-for-model', ["model_id" => $item->id ?? $model_id ?? null])
 
 @include ('partials.forms.edit.notes')
-@include ('partials.forms.edit.requestable', ['requestable_text' => trans('admin/models/general.requestable')])
+{{-- @include ('partials.forms.edit.requestable', ['requestable_text' => trans('admin/models/general.requestable')]) --}}
 @include ('partials.forms.edit.image-upload', ['image_path' => app('models_upload_path')])
 
 

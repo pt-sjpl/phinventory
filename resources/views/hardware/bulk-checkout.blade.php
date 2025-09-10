@@ -58,10 +58,10 @@
 
 
             <!-- Checkout selector -->
-          @include ('partials.forms.checkout-selector', ['user_select' => 'true','asset_select' => 'true', 'location_select' => 'true'])
+          @include ('partials.forms.checkout-selector', ['user_select' => 'true','asset_select' => 'false', 'location_select' => 'true'])
 
           @include ('partials.forms.edit.user-select-scan-qr', ['translated_name' => trans('general.user'), 'fieldname' => 'assigned_user'])
-            @include ('partials.forms.edit.asset-select', ['translated_name' => trans('general.asset'), 'asset_selector_div_id' => 'assigned_asset', 'fieldname' => 'assigned_asset', 'unselect' => 'true', 'style' => 'display:none;'])
+            {{-- @include ('partials.forms.edit.asset-select', ['translated_name' => trans('general.asset'), 'asset_selector_div_id' => 'assigned_asset', 'fieldname' => 'assigned_asset', 'unselect' => 'true', 'style' => 'display:none;']) --}}
           @include ('partials.forms.edit.location-select', ['translated_name' => trans('general.location'), 'fieldname' => 'assigned_location', 'style' => 'display:none;'])
 
           <!-- Checkout/Checkin Date -->
@@ -71,14 +71,14 @@
                   </label>
                   <div class="col-md-8">
                       <div class="input-group date col-md-5" data-provide="datepicker" data-date-format="yyyy-mm-dd" data-date-end-date="0d" data-date-clear-btn="true">
-                          <input type="text" class="form-control" placeholder="{{ trans('general.select_date') }}" name="checkout_at" id="checkout_at" value="{{ old('checkout_at') }}">
+                          <input disabled type="text" class="form-control" placeholder="{{ trans('general.select_date') }}" name="checkout_at" id="checkout_at" value="{{ old('checkout_at', date('Y-m-d')) }}">
                           <span class="input-group-addon"><x-icon type="calendar" /></span>
                       </div>
                       {!! $errors->first('checkout_at', '<span class="alert-msg" aria-hidden="true"><i class="fas fa-times" aria-hidden="true"></i> :message</span>') !!}
                   </div>
               </div>
 
-              <!-- Expected Checkin Date -->
+              {{-- <!-- Expected Checkin Date -->
               <div class="form-group {{ $errors->has('expected_checkin') ? 'error' : '' }}">
                   <label for="expected_checkin" class="col-sm-3 control-label">
                       {{ trans('admin/hardware/form.expected_checkin') }}
@@ -90,7 +90,7 @@
                       </div>
                       {!! $errors->first('expected_checkin', '<span class="alert-msg" aria-hidden="true"><i class="fas fa-times" aria-hidden="true"></i> :message</span>') !!}
                   </div>
-              </div>
+              </div> --}}
 
 
           <!-- Note -->
