@@ -1,5 +1,5 @@
 <div>
-    <!-- EULA text -->
+    {{-- <!-- EULA text -->
     <div class="form-group {{ $errors->has('eula_text') ? 'error' : '' }}">
         <label for="eula_text" class="col-md-3 control-label">{{ trans('admin/categories/general.eula_text') }}</label>
         <div class="col-md-7">
@@ -16,9 +16,9 @@
         @if ($this->eulaTextDisabled)
             <input type="hidden" name="eula_text" wire:model.live="eulaText" />
         @endif
-    </div>
+    </div> --}}
 
-    <!-- Use default checkbox -->
+    {{-- <!-- Use default checkbox -->
     <div class="form-group">
         <div class="col-md-9 col-md-offset-3">
             @if ($defaultEulaText!='')
@@ -46,9 +46,9 @@
                 </label>
             @endif
         </div>
-    </div>
+    </div> --}}
 
-    <!-- Require Acceptance -->
+    {{-- <!-- Require Acceptance -->
     <div class="form-group">
         <div class="col-md-9 col-md-offset-3">
             <label class="form-control">
@@ -62,9 +62,9 @@
                 {{ trans('admin/categories/general.require_acceptance') }}
             </label>
         </div>
-    </div>
+    </div> --}}
 
-    @if ($requireAcceptance)
+    {{-- @if ($requireAcceptance)
         <div class="form-group">
             <div class="col-md-9 col-md-offset-3">
                 <label class="form-control">
@@ -78,7 +78,7 @@
                 </label>
             </div>
         </div>
-    @endif
+    @endif --}}
 
     <!-- Email on Checkin -->
     <div class="form-group">

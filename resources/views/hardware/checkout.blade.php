@@ -112,6 +112,7 @@
                             <div class="col-md-8">
 
                                 <x-input.datepicker
+                                        disabled
                                         name="checkout_at"
                                         end_date="0d"
                                         col_size_class="col-md-7"
@@ -123,7 +124,7 @@
                             </div>
                         </div>
 
-                        <!-- Expected Checkin Date -->
+                        {{-- <!-- Expected Checkin Date -->
                         <div class="form-group {{ $errors->has('expected_checkin') ? 'error' : '' }}">
                             <label for="expected_checkin" class="col-md-3 control-label">
                                 {{ trans('admin/hardware/form.expected_checkin') }}
@@ -138,7 +139,7 @@
                                 />
                                 {!! $errors->first('expected_checkin', '<span class="alert-msg" aria-hidden="true"><i class="fas fa-times" aria-hidden="true"></i> :message</span>') !!}
                             </div>
-                        </div>
+                        </div> --}}
 
                         <!-- Note -->
                         <div class="form-group {{ $errors->has('note') ? 'error' : '' }}">
