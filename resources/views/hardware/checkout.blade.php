@@ -112,7 +112,7 @@
                             <div class="col-md-8">
 
                                 <x-input.datepicker
-                                        disabled
+                                        {{-- disabled --}}
                                         name="checkout_at"
                                         end_date="0d"
                                         col_size_class="col-md-7"

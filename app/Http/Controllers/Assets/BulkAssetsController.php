@@ -654,9 +654,9 @@ class BulkAssetsController extends Controller
                 }
             }
             $checkout_at = date('Y-m-d H:i:s');
-            // if (($request->filled('checkout_at')) && ($request->get('checkout_at') != date('Y-m-d'))) {
-            //     $checkout_at = $request->get('checkout_at');
-            // }
+            if (($request->filled('checkout_at')) && ($request->get('checkout_at') != date('Y-m-d'))) {
+                $checkout_at = $request->get('checkout_at');
+            }
 
             $expected_checkin = '';
 
