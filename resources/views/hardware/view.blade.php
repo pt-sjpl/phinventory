@@ -59,7 +59,7 @@
                         </a>
                     </li>
 
-                    <li>
+                    {{-- <li>
                         <a href="#software" data-toggle="tab">
                           <span class="hidden-lg hidden-md">
                            <x-icon type="licenses" class="fa-2x" />
@@ -68,9 +68,9 @@
                                 {!! ($asset->licenses->count() > 0 ) ? '<span class="badge badge-secondary">'.number_format($asset->licenses->count()).'</span>' : '' !!}
                           </span>
                         </a>
-                    </li>
+                    </li> --}}
 
-                    <li>
+                    {{-- <li>
                         <a href="#components" data-toggle="tab">
                           <span class="hidden-lg hidden-md">
                             <x-icon type="components" class="fa-2x" />
@@ -79,9 +79,9 @@
                                 {!! ($asset->components->count() > 0 ) ? '<span class="badge badge-secondary">'.number_format($asset->components->count()).'</span>' : '' !!}
                           </span>
                         </a>
-                    </li>
+                    </li> --}}
 
-                    <li>
+                    {{-- <li>
                         <a href="#assets" data-toggle="tab">
                           <span class="hidden-lg hidden-md">
                             <x-icon type="assets" class="fa-2x" />
@@ -92,9 +92,9 @@
 
                           </span>
                         </a>
-                    </li>
+                    </li> --}}
 
-                    @if ($asset->assignedAccessories->count() > 0)
+                    {{-- @if ($asset->assignedAccessories->count() > 0)
                         <li>
                             <a href="#accessories_assigned" data-toggle="tab" data-tooltip="true">
 
@@ -108,10 +108,10 @@
                                 </span>
                             </a>
                         </li>
-                    @endif
+                    @endif --}}
 
 
-                    @if ($asset->audits->count() > 0)
+                    {{-- @if ($asset->audits->count() > 0)
                         <li>
                             <a href="#audits" data-toggle="tab" data-tooltip="true">
 
@@ -125,7 +125,7 @@
                                 </span>
                             </a>
                         </li>
-                    @endif
+                    @endif --}}
 
                     <li>
                         <a href="#history" data-toggle="tab">
@@ -137,7 +137,7 @@
                         </a>
                     </li>
 
-                    <li>
+                    {{-- <li>
                         <a href="#maintenances" data-toggle="tab">
                           <span class="hidden-lg hidden-md">
                               <x-icon type="maintenances" class="fa-2x" />
@@ -146,7 +146,7 @@
                                 {!! ($asset->assetmaintenances()->count() > 0 ) ? '<span class="badge badge-secondary">'.number_format($asset->assetmaintenances()->count()).'</span>' : '' !!}
                           </span>
                         </a>
-                    </li>
+                    </li> --}}
 
                     <li>
                         <a href="#files" data-toggle="tab">
