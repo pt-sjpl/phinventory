@@ -505,13 +505,13 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                             <span class="badge">{{ (isset($total_undeployable_sidebar)) ? $total_undeployable_sidebar : '' }}</span>
                                         </a>
                                     </li>
-                                    <li id="byod-sidenav-option"{!! (Request::query('status') == 'byod' ? ' class="active"' : '') !!}><a
+                                    {{-- <li id="byod-sidenav-option"{!! (Request::query('status') == 'byod' ? ' class="active"' : '') !!}><a
                                                 href="{{ url('hardware?status=byod') }}">
                                             <x-icon type="x" class="text-red fa-fw" />
                                             {{ trans('general.byod') }}
                                             <span class="badge">{{ (isset($total_byod_sidebar)) ? $total_byod_sidebar : '' }}</span>
                                         </a>
-                                    </li>
+                                    </li> --}}
                                     <li id="archived-sidenav-option"{!! (Request::query('status') == 'Archived' ? ' class="active"' : '') !!}><a
                                                 href="{{ url('hardware?status=Archived') }}">
                                             <x-icon type="x" class="text-red fa-fw" />
@@ -519,14 +519,14 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                             <span class="badge">{{ (isset($total_archived_sidebar)) ? $total_archived_sidebar : '' }}</span>
                                         </a>
                                     </li>
-                                    <li id="requestable-sidenav-option"{!! (Request::query('status') == 'Requestable' ? ' class="active"' : '') !!}><a
+                                    {{-- <li id="requestable-sidenav-option"{!! (Request::query('status') == 'Requestable' ? ' class="active"' : '') !!}><a
                                                 href="{{ url('hardware?status=Requestable') }}">
                                             <x-icon type="checkmark" class="text-blue fa-fw" />
                                             {{ trans('admin/hardware/general.requestable') }}
                                         </a>
-                                    </li>
+                                    </li> --}}
 
-                                    @can('audit', \App\Models\Asset::class)
+                                    {{-- @can('audit', \App\Models\Asset::class)
                                         <li id="audit-due-sidenav-option"{!! (Request::is('hardware/audit/due') ? ' class="active"' : '') !!}>
                                             <a href="{{ route('assets.audit.due') }}">
                                                 <x-icon type="audit" class="text-yellow fa-fw"/>
@@ -534,9 +534,9 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                                 <span class="badge">{{ (isset($total_due_and_overdue_for_audit)) ? $total_due_and_overdue_for_audit : '' }}</span>
                                             </a>
                                         </li>
-                                    @endcan
+                                    @endcan --}}
 
-                                    @can('checkin', \App\Models\Asset::class)
+                                    {{-- @can('checkin', \App\Models\Asset::class)
                                     <li id="checkin-due-sidenav-option"{!! (Request::is('hardware/checkins/due') ? ' class="active"' : '') !!}>
                                         <a href="{{ route('assets.checkins.due') }}">
                                             <x-icon type="due" class="text-orange fa-fw"/>
@@ -544,7 +544,7 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                             <span class="badge">{{ (isset($total_due_and_overdue_for_checkin)) ? $total_due_and_overdue_for_checkin : '' }}</span>
                                         </a>
                                     </li>
-                                    @endcan
+                                    @endcan --}}
 
                                     <li class="divider">&nbsp;</li>
                                     @can('checkin', \App\Models\Asset::class)
@@ -561,10 +561,10 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                                 {{ trans('general.bulk_checkout') }}
                                             </a>
                                         </li>
-                                        <li{!! (Request::is('hardware/requested') ? ' class="active"' : '') !!}>
+                                        {{-- <li{!! (Request::is('hardware/requested') ? ' class="active"' : '') !!}>
                                             <a href="{{ route('assets.requested') }}">
                                                 {{ trans('general.requested') }}</a>
-                                        </li>
+                                        </li> --}}
                                     @endcan
 
                                     @can('create', \App\Models\Asset::class)
@@ -573,11 +573,11 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                                 {{ trans('general.deleted') }}
                                             </a>
                                         </li>
-                                        <li {!! (Request::is('maintenances') ? ' class="active"' : '') !!}>
+                                        {{-- <li {!! (Request::is('maintenances') ? ' class="active"' : '') !!}>
                                             <a href="{{ route('maintenances.index') }}">
                                                 {{ trans('general.asset_maintenances') }}
                                             </a>
-                                        </li>
+                                        </li> --}}
                                     @endcan
                                     @can('admin')
                                         <li id="import-history-sidenav-option" {!! (Request::is('hardware/history') ? ' class="active"' : '') !!}>
@@ -765,47 +765,47 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                             {{ trans('general.custom_report') }}
                                         </a>
                                     </li>
-                                    <li {{!! (Request::is('reports/audit') ? ' class="active"' : '') !!}}>
+                                    {{-- <li {{!! (Request::is('reports/audit') ? ' class="active"' : '') !!}}>
                                         <a href="{{ route('reports.audit') }}">
                                             {{ trans('general.audit_report') }}</a>
-                                    </li>
-                                    <li {{!! (Request::is('reports/depreciation') ? ' class="active"' : '') !!}}>
+                                    </li> --}}
+                                    {{-- <li {{!! (Request::is('reports/depreciation') ? ' class="active"' : '') !!}}>
                                         <a href="{{ url('reports/depreciation') }}">
                                             {{ trans('general.depreciation_report') }}
                                         </a>
-                                    </li>
-                                    <li {{!! (Request::is('reports/licenses') ? ' class="active"' : '') !!}}>
+                                    </li> --}}
+                                    {{-- <li {{!! (Request::is('reports/licenses') ? ' class="active"' : '') !!}}>
                                         <a href="{{ url('reports/licenses') }}">
                                             {{ trans('general.license_report') }}
                                         </a>
-                                    </li>
-                                    <li {{!! (Request::is('reports/asset_maintenances') ? ' class="active"' : '') !!}}>
+                                    </li> --}}
+                                    {{-- <li {{!! (Request::is('reports/asset_maintenances') ? ' class="active"' : '') !!}}>
                                         <a href="{{ url('reports/asset_maintenances') }}">
                                             {{ trans('general.asset_maintenance_report') }}
                                         </a>
-                                    </li>
-                                    <li {{!! (Request::is('reports/unaccepted_assets') ? ' class="active"' : '') !!}}>
+                                    </li> --}}
+                                    {{-- <li {{!! (Request::is('reports/unaccepted_assets') ? ' class="active"' : '') !!}}>
                                         <a href="{{ url('reports/unaccepted_assets') }}">
                                             {{ trans('general.unaccepted_asset_report') }}
                                         </a>
-                                    </li>
-                                    <li  {{!! (Request::is('reports/accessories') ? ' class="active"' : '') !!}}>
+                                    </li> --}}
+                                    {{-- <li  {{!! (Request::is('reports/accessories') ? ' class="active"' : '') !!}}>
                                         <a href="{{ url('reports/accessories') }}">
                                             {{ trans('general.accessory_report') }}
                                         </a>
-                                    </li>
+                                    </li> --}}
                                 </ul>
                             </li>
                         @endcan
 
-                        @can('viewRequestable', \App\Models\Asset::class)
+                        {{-- @can('viewRequestable', \App\Models\Asset::class)
                             <li{!! (Request::is('account/requestable-assets') ? ' class="active"' : '') !!}>
                                 <a href="{{ route('requestable-assets') }}">
                                     <x-icon type="requestable" class="fa-fw" />
                                     <span>{{ trans('general.requestable_items') }}</span>
                                 </a>
                             </li>
-                        @endcan
+                        @endcan --}}
 
 
                     </ul>
