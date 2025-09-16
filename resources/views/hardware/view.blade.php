@@ -262,7 +262,7 @@
 
 
 
-                                    @can('audit', \App\Models\Asset::class)
+                                    {{-- @can('audit', \App\Models\Asset::class)
                                         <div class="col-md-12 hidden-print" style="padding-top: 5px;">
                                         <span class="tooltip-wrapper"{!! (!$asset->model ? ' data-tooltip="true" title="'.trans('admin/hardware/general.model_invalid_fix').'"' : '') !!}>
                                             <a href="{{ route('asset.audit.create', $asset->id)  }}" class="btn btn-sm btn-primary btn-block btn-social hidden-print{{ (!$asset->model ? ' disabled' : '') }}">
@@ -271,7 +271,7 @@
                                             </a>
                                         </span>
                                         </div>
-                                    @endcan
+                                    @endcan --}}
                                 @endif
 
                                 @can('create', $asset)
