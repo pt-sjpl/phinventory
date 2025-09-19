@@ -53,6 +53,7 @@ class LicensePresenter extends Presenter
                 'searchable' => true,
                 'sortable' => true,
                 'title' => trans('admin/licenses/form.to_email'),
+                'formatter' => 'emailFormatter',
             ], [
                 'field' => 'license_name',
                 'searchable' => true,
@@ -201,7 +202,7 @@ class LicensePresenter extends Presenter
             'switchable' => false,
             'title' => trans('general.checkin').'/'.trans('general.checkout'),
             'visible' => true,
-            'formatter' => 'licensesInOutFormatter',
+            'formatter' => 'licenseInOutFormatter',
             'printIgnore' => true,
         ];
 

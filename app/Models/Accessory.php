@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Helpers\Helper;
 use App\Models\Traits\Acceptable;
+use App\Models\Traits\CompanyableTrait;
 use App\Models\Traits\HasUploads;
 use App\Models\Traits\Searchable;
 use App\Presenters\Presentable;
@@ -65,7 +66,7 @@ class Accessory extends SnipeModel
         'company_id'        => 'integer|nullable',
         'location_id'       => 'exists:locations,id|nullable|fmcs_location',
         'min_amt'           => 'integer|min:0|nullable',
-        'purchase_cost'     => 'numeric|nullable|gte:0|max:9999999999999',
+        'purchase_cost'     =>  'numeric|nullable|gte:0|max:99999999999999999.99',
         'purchase_date'     => 'date_format:Y-m-d|nullable',
     ];
 
@@ -309,27 +310,6 @@ class Accessory extends SnipeModel
     }
 
     /**
-     * Checks for a category-specific EULA, and if that doesn't exist,
-     * checks for a settings level EULA
-     *
-     * @author [A. Gianotto] [<snipe@snipe.net>]
-     * @since  [v3.0]
-     * @return string
-     */
-    public function getEula()
-    {
-
-        if ($this->category->eula_text) {
-            return Helper::parseEscapedMarkedown($this->category->eula_text);
-        } elseif ((Setting::getSettings()->default_eula_text) && ($this->category->use_default_eula == '1')) {
-            return Helper::parseEscapedMarkedown(Setting::getSettings()->default_eula_text);
-        }
-
-        return null;
-    }
-
-
-    /**
      * Check how many items within an accessory are checked out
      *
      * @author [A. Gianotto] [<snipe@snipe.net>]
@@ -376,6 +356,10 @@ class Accessory extends SnipeModel
         }
 
         $accessory_checkout->limit(1)->delete();
+    }
+    public function totalCostSum() {
+
+        return $this->purchase_cost !== null ? $this->qty * $this->purchase_cost : null;
     }
 
     /**

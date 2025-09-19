@@ -111,17 +111,36 @@ class AssetsController extends Controller
         // This is only necessary on create, not update, since bulk editing is handled
         // differently
         $asset_tags = $request->input('asset_tags');
+        $model = AssetModel::find($request->input('model_id'));
+        $serial_errors = [];
+        $serials = $request->input('serials');
 
         $settings = Setting::getSettings();
 
+        //Validate required serial based on model setting
+        for ($a = 1, $aMax = count($asset_tags); $a <= $aMax; $a++) {
+            if ($model && $model->require_serial === 1 && empty($serials[$a])) {
+                $serial_errors["serials.$a"] = trans('admin/hardware/form.serial_required', ['number' => $a]);
+            }
+
+        }
+
+        if (!empty($serial_errors)) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors($serial_errors);
+        }
+
+        $asset = null;
+        $companyId = Company::getIdForCurrentUser($request->input('company_id'));
         $successes = [];
         $failures = [];
-        $serials = $request->input('serials');
-        $asset = null;
 
-        // Acquire a named lock (wait up to 5s)
-        $lockName = 'asset_tag_generation';
-        DB::statement("SELECT GET_LOCK(?, 5)", [$lockName]);
+        for ($a = 1, $aMax = count($asset_tags); $a <= $aMax; $a++) {
+            $asset = new Asset();
+
+            $asset->model()->associate($model);
+            $asset->name = $request->input('name');
 
         try {
             $response = DB::transaction(function() use ($request, $asset_tags, $serials, $settings, &$successes, &$failures, &$asset,) {
@@ -139,21 +158,21 @@ class AssetsController extends Controller
                     $nextInt = (int) $latest->asset_tag + 1;
                     $asset->asset_tag = Str::padLeft($nextInt, strlen($latest->asset_tag), '0');
 
-                    $asset->company_id              = Company::getIdForCurrentUser($request->input('company_id'));
-                    $asset->model_id                = $request->input('model_id');
-                    $asset->order_number            = $request->input('order_number');
-                    $asset->notes                   = $request->input('notes');
-                    $asset->created_by              = auth()->id();
-                    $asset->status_id               = request('status_id');
-                    $asset->warranty_months         = request('warranty_months', null);
-                    $asset->purchase_cost           = request('purchase_cost');
-                    $asset->purchase_date           = request('purchase_date', null);
-                    $asset->asset_eol_date          = request('asset_eol_date', null);
-                    $asset->assigned_to             = request('assigned_to', null);
-                    $asset->supplier_id             = request('supplier_id', null);
-                    $asset->requestable             = request('requestable', 0);
-                    $asset->rtd_location_id         = request('rtd_location_id', null);
-                    $asset->byod                    = request('byod', 0);
+            $asset->company_id              = $companyId;
+            $asset->model_id                = $request->input('model_id');
+            $asset->order_number            = $request->input('order_number');
+            $asset->notes                   = $request->input('notes');
+            $asset->created_by              = auth()->id();
+            $asset->status_id               = request('status_id');
+            $asset->warranty_months         = request('warranty_months', null);
+            $asset->purchase_cost           = request('purchase_cost');
+            $asset->purchase_date           = request('purchase_date', null);
+            $asset->asset_eol_date          = request('asset_eol_date', null);
+            $asset->assigned_to             = request('assigned_to', null);
+            $asset->supplier_id             = request('supplier_id', null);
+            $asset->requestable             = request('requestable', 0);
+            $asset->rtd_location_id         = request('rtd_location_id', null);
+            $asset->byod                    = request('byod', 0);
 
                     if (! empty($settings->audit_interval)) {
                         $asset->next_audit_date = Carbon::now()->addMonths((int) $settings->audit_interval)->toDateString();
@@ -164,14 +183,21 @@ class AssetsController extends Controller
                         $asset->location_id = $request->input('rtd_location_id', null);
                     }
 
-                    // Create the image (if one was chosen.)
-                    if ($request->has('image')) {
-                        $asset = $request->handleImages($asset);
-                    }
+            if ($request->has('use_cloned_image')) {
+                $cloned_model_img = Asset::select('image')->find($request->input('clone_image_from_id'));
+                if ($cloned_model_img) {
+                    $new_image_name = 'clone-'.date('U').'-'.$cloned_model_img->image;
+                    $new_image = 'assets/'.$new_image_name;
+                    Storage::disk('public')->copy('assets/'.$cloned_model_img->image, $new_image);
+                    $asset->image = $new_image_name;
+                }
 
-                    // Update custom fields in the database.
-                    // Validation for these fields is handled through the AssetRequest form request
-                    $model = AssetModel::find($request->get('model_id'));
+            } else {
+                $asset = $request->handleImages($asset);
+            }
+
+            // Update custom fields in the database.
+            // Validation for these fields is handled through the AssetRequest form request
 
                     if (($model) && ($model->fieldset)) {
                         foreach ($model->fieldset->fields as $field) {
@@ -273,9 +299,40 @@ class AssetsController extends Controller
             // Release the lock no matter what
             DB::statement("SELECT RELEASE_LOCK(?)", [$lockName]);
         }
+        if($request->get('redirect_option') === 'back'){
+            session()->put(['redirect_option' => 'index']);
+        } else {
+            session()->put(['redirect_option' => $request->get('redirect_option')]);
+        }
 
-        return $response;
-    }
+        session()->put(['checkout_to_type' => $request->get('checkout_to_type'),
+                       'other_redirect' =>  'model' ]);
+
+
+
+        if ($successes) {
+            if ($failures) {
+                //some succeeded, some failed
+                return Helper::getRedirectOption($request, $asset->id, 'Assets') //FIXME - not tested
+                ->with('success-unescaped', trans_choice('admin/hardware/message.create.multi_success_linked', $successes, ['links' => join(", ", $successes)]))
+                    ->with('warning', trans_choice('admin/hardware/message.create.partial_failure', $failures, ['failures' => join("; ", $failures)]));
+            } else {
+                if (count($successes) == 1) {
+                    //the most common case, keeping it so we don't have to make every use of that translation string be trans_choice'ed
+                    //and re-translated
+                    return Helper::getRedirectOption($request, $asset->id, 'Assets')
+                        ->with('success-unescaped', trans('admin/hardware/message.create.success_linked', ['link' => route('hardware.show', $asset), 'id', 'tag' => e($asset->asset_tag)]));
+                } else {
+                    //multi-success
+                    return Helper::getRedirectOption($request, $asset->id, 'Assets')
+                        ->with('success-unescaped', trans_choice('admin/hardware/message.create.multi_success_linked', $successes, ['links' => join(", ", $successes)]));
+                }
+            }
+
+        }
+
+        return redirect()->back()->withInput()->withErrors($asset->getErrors());
+    }}
 
 
     /**
@@ -432,6 +489,9 @@ class AssetsController extends Controller
         $model = AssetModel::find($request->get('model_id'));
         if (($model) && ($model->fieldset)) {
             foreach ($model->fieldset->fields as $field) {
+                if ($field->element == 'checkbox' && !$request->has($field->db_column)) {
+                    $asset->{$field->db_column} = null;
+                }
                 if ($request->has($field->db_column)) {
                     if ($field->field_encrypted == '1') {
                         if (Gate::allows('assets.view.encrypted_custom_fields')) {
@@ -458,6 +518,13 @@ class AssetsController extends Controller
         ]);
 
 
+        //Validate required serial based on model setting
+        if ($model && $model->require_serial === 1 && empty($serial[1])) {
+            return redirect()->to(Helper::getRedirectOption($request, $asset->id, 'Assets'))
+                ->with('warning', trans('admin/hardware/form.serial_required_post_model_update', [
+                    'asset_model' => $model->name
+                ]));
+        }
         if ($asset->save()) {
             return Helper::getRedirectOption($request, $asset->id, 'Assets')
                 ->with('success', trans('admin/hardware/message.update.success'));
@@ -664,8 +731,9 @@ class AssetsController extends Controller
      */
     public function getClone(Asset $asset)
     {
-        $this->authorize('create', $asset);
+        $this->authorize('create', Asset::class);
         $cloned = clone $asset;
+        $cloned_model = $asset;
         $cloned->id = null;
         $cloned->asset_tag = '';
         $cloned->serial = '';
@@ -675,6 +743,7 @@ class AssetsController extends Controller
         return view('hardware/edit')
             ->with('statuslabel_list', Helper::statusLabelList())
             ->with('statuslabel_types', Helper::statusTypeList())
+            ->with('cloned_model', $cloned_model)
             ->with('item', $cloned);
     }
 
@@ -800,7 +869,7 @@ class AssetsController extends Controller
                             'item_id' => $asset->id,
                             'item_type' => Asset::class,
                             'created_by' =>  auth()->id(),
-                            'note' => 'Checkout imported by '.auth()->user()->present()->fullName().' from history importer',
+                            'note' => 'Checkout imported by '.auth()->user()->display_name.' from history importer',
                             'target_id' => $item[$asset_tag][$batch_counter]['user_id'],
                             'target_type' => User::class,
                             'created_at' =>  $item[$asset_tag][$batch_counter]['checkout_date'],
@@ -828,7 +897,7 @@ class AssetsController extends Controller
                                 'item_id' => $item[$asset_tag][$batch_counter]['asset_id'],
                                 'item_type' => Asset::class,
                                 'created_by' => auth()->id(),
-                                'note' => 'Checkin imported by '.auth()->user()->present()->fullName().' from history importer',
+                                'note' => 'Checkin imported by '.auth()->user()->display_name.' from history importer',
                                 'target_id' => null,
                                 'created_at' => $checkin_date,
                                 'action_type' => 'checkin',
