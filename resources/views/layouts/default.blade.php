@@ -599,13 +599,13 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                             </a>
                                         </li>
                                     @endcan
-                                    @can('audit', \App\Models\Asset::class)
+                                    {{-- @can('audit', \App\Models\Asset::class)
                                         <li id="bulk-audit-sidenav-option" {!! (request()->is('hardware/bulkaudit') ? ' class="active"' : '') !!}>
                                             <a href="{{ route('assets.bulkaudit') }}">
                                                 {{ trans('general.bulkaudit') }}
                                             </a>
                                         </li>
-                                    @endcan
+                                    @endcan --}}
                                 </ul>
                             </li>
                         @endcan
