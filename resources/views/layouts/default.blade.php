@@ -1083,6 +1083,32 @@ dir="{{ Helper::determineLanguageDirection() }}">
         @section('moar_scripts')
         @show
 
+        <script nonce="{{ csrf_token() }}">
+            window.snipeit = window.snipeit || {};
+            window.snipeit.extractAssetTagFromScan = function (rawValue) {
+                if (!rawValue) {
+                    return null;
+                }
+                var match = String(rawValue).match(/\/(?:ht|hardware)\/([^\s\/]+)/i);
+                if (!match || !match[1]) {
+                    return null;
+                }
+                var assetTag = $.trim(match[1]);
+                return assetTag.length ? assetTag : null;
+            };
+            $(function () {
+                var $tagSearch = $('#tagSearch');
+                if ($tagSearch.length) {
+                    $tagSearch.on('input.qrAssetSearch', function () {
+                        var assetTag = window.snipeit.extractAssetTagFromScan($(this).val());
+                        if (assetTag) {
+                            $(this).val(assetTag);
+                        }
+                    });
+                }
+            });
+        </script>
+
 
         <script nonce="{{ csrf_token() }}">
 

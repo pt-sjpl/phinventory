@@ -147,22 +147,48 @@
             return true; // ensure form still submits
         });
 
-        $('#assigned_assets_select').select2('open');
-        setTimeout(function () {
-            const $searchField = $('.select2-search__field');
-            const $results = $('.select2-results');
+        function attachScannerHandler($input, $results) {
+            if (!$input.length || !(window.snipeit && window.snipeit.extractAssetTagFromScan)) {
+                return;
+            }
 
-            // Focus the search input
-            $searchField.focus();
+            $input.off('input.qrAssetSearch').on('input.qrAssetSearch', function () {
+                var assetTag = window.snipeit.extractAssetTagFromScan($(this).val());
 
-            // Hide results initially
+                if (assetTag) {
+                    $(this).val(assetTag);
+                    $(this).trigger('keyup');
+                    if ($results && $results.length) {
+                        $results.show();
+                    }
+                }
+            });
+        }
+
+        function setupSelect2SearchField() {
+            var $searchField = $('.select2-search__field');
+            var $results = $('.select2-results');
+
+            if (!$searchField.length) {
+                return;
+            }
+
+            $searchField.trigger('focus');
             $results.hide();
 
-            // Show results when a user starts typing
-            $searchField.on('input', function () {
+            attachScannerHandler($searchField, $results);
+
+            $searchField.off('input.assetsSelect').on('input.assetsSelect', function () {
                 $results.show();
             });
-        }, 0);
+        }
+
+        $('#assigned_assets_select').select2('open');
+        setTimeout(setupSelect2SearchField, 0);
+
+        $('#assigned_assets_select').on('select2:open', function () {
+            setTimeout(setupSelect2SearchField, 0);
+        });
     });
 </script>
 

@@ -95,4 +95,40 @@
 @section('moar_scripts')
 @include('partials.bootstrap-table')
 
+<script>
+  $(function () {
+    var tableId = '{{ request()->has('status') ? e(request()->input('status')) : '' }}assetsListingTable';
+    var $table = $('#' + tableId);
+    var listenerAttached = false;
+
+    function tryAttachScannerListener() {
+      if (listenerAttached || !$table.length) {
+        return;
+      }
+
+      var $searchInput = $table.parents('.bootstrap-table').find('.fixed-table-toolbar .search input');
+
+      if (!$searchInput.length) {
+        return;
+      }
+
+      listenerAttached = true;
+
+      $searchInput.on('input.qrAssetSearch', function () {
+        var assetTag = window.snipeit && window.snipeit.extractAssetTagFromScan
+          ? window.snipeit.extractAssetTagFromScan($(this).val())
+          : null;
+
+        if (assetTag) {
+          $(this).val(assetTag);
+          $table.bootstrapTable('resetSearch', assetTag);
+        }
+      });
+    }
+
+    tryAttachScannerListener();
+    $table.on('post-body.bs.table', tryAttachScannerListener);
+  });
+</script>
+
 @stop
