@@ -592,13 +592,13 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                             </a>
                                         </li> --}}
                                     @endcan
-                                    @can('admin')
+                                    {{-- @can('admin')
                                         <li id="import-history-sidenav-option" {!! (request()->is('hardware/history') ? ' class="active"' : '') !!}>
                                             <a href="{{ url('hardware/history') }}">
                                                 {{ trans('general.import-history') }}
                                             </a>
                                         </li>
-                                    @endcan
+                                    @endcan --}}
                                     {{-- @can('audit', \App\Models\Asset::class)
                                         <li id="bulk-audit-sidenav-option" {!! (request()->is('hardware/bulkaudit') ? ' class="active"' : '') !!}>
                                             <a href="{{ route('assets.bulkaudit') }}">
@@ -698,14 +698,14 @@ dir="{{ Helper::determineLanguageDirection() }}">
                                     </ul>
                                 </li>
                         @endcan
-                        @can('import')
+                        {{-- @can('import')
                             <li id="import-sidenav-option"{!! (request()->is('import*') ? ' class="active"' : '') !!}>
                                 <a href="{{ route('imports.index') }}">
                                     <x-icon type="import" class="fa-fw" />
                                     <span>{{ trans('general.import') }}</span>
                                 </a>
                             </li>
-                        @endcan
+                        @endcan --}}
 
                         @can('backend.interact')
                             <li id="settings-sidenav-option" class="treeview {!! in_array(Request::route()->getName(),App\Helpers\Helper::SettingUrls()) ? ' active': '' !!}">
