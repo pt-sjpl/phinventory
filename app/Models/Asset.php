@@ -7,19 +7,20 @@ use App\Exceptions\CheckoutNotAllowed;
 use App\Helpers\Helper;
 use App\Http\Traits\UniqueUndeletedTrait;
 use App\Models\Traits\Acceptable;
+use App\Models\Traits\CompanyableTrait;
 use App\Models\Traits\HasUploads;
 use App\Models\Traits\Searchable;
-use App\Presenters\Presentable;
 use App\Presenters\AssetPresenter;
+use App\Presenters\Presentable;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Watson\Validating\ValidatingTrait;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**
  * Model for Assets.
@@ -112,8 +113,8 @@ class Asset extends Depreciable
         'location_id'       => ['nullable', 'exists:locations,id', 'fmcs_location'],
         'rtd_location_id'   => ['nullable', 'exists:locations,id', 'fmcs_location'],
         'purchase_date'     => ['nullable', 'date', 'date_format:Y-m-d'],
-        'serial'            => ['nullable', 'unique_undeleted:assets,serial'],
-        'purchase_cost'     => ['nullable', 'numeric', 'gte:0', 'max:9999999999999'],
+        'serial'            => ['nullable', 'string', 'unique_undeleted:assets,serial'],
+        'purchase_cost'     => ['nullable', 'numeric', 'gte:0', 'max:99999999999999999.99'],
         'supplier_id'       => ['nullable', 'exists:suppliers,id'],
         'asset_eol_date'    => ['nullable', 'date'],
         'eol_explicit'      => ['nullable', 'boolean'],
@@ -160,7 +161,6 @@ class Asset extends Depreciable
         'eol_explicit',
         'last_audit_date',
         'next_audit_date',
-        'asset_eol_date',
         'last_checkin',
         'last_checkout',
     ];
@@ -206,6 +206,17 @@ class Asset extends Depreciable
         'model.manufacturer' => ['name'],
     ];
 
+    protected static function booted(): void
+    {
+        static::forceDeleted(function (Asset $asset) {
+            $asset->requests()->forceDelete();
+        });
+
+        static::softDeleted(function (Asset $asset) {
+            $asset->requests()->delete();
+        });
+    }
+
     // To properly set the expected checkin as Y-m-d
     public function setExpectedCheckinAttribute($value)
     {
@@ -226,7 +237,11 @@ class Asset extends Depreciable
 
             foreach ($this->model->fieldset->fields as $field) {
 
-                if ($field->format == 'BOOLEAN') {
+                // this just casts booleans that may come through as strings to an actual boolean type
+                // adding !$field->field_encrypted because when the encrypted value comes through it
+                // screws things up for the encrypted validation rules (and the encrypted string
+                // is not a valid boolean type)
+                if ($field->format == 'BOOLEAN' && !$field->field_encrypted) {
                     $this->{$field->db_column} = filter_var($this->{$field->db_column}, FILTER_VALIDATE_BOOLEAN);
                 }
             }
@@ -756,9 +771,9 @@ class Asset extends Depreciable
      * @since  1.0
      * @return \Illuminate\Database\Eloquent\Relations\Relation
      */
-    public function assetmaintenances()
+    public function maintenances()
     {
-        return $this->hasMany(\App\Models\AssetMaintenance::class, 'asset_id')
+        return $this->hasMany(\App\Models\Maintenance::class, 'asset_id')
             ->orderBy('created_at', 'desc');
     }
 
@@ -808,21 +823,26 @@ class Asset extends Depreciable
      * @since  [v2.0]
      * @return mixed
      */
-    public static function getExpiringWarrantee($days = 30)
+    public static function getExpiringWarrantyOrEol($days = 30)
     {
-        $days = (is_null($days)) ? 30 : $days;
-
-        return self::where('archived', '=', '0') // this can stay for right now, as `archived` defaults to 0 at the db level, but should probably be replaced with assetstatus->archived?
-            ->whereNotNull('warranty_months')
-            ->whereNotNull('purchase_date')
-            ->whereNull('deleted_at')
+        
+        return self::where('archived', '=', '0')
             ->NotArchived()
-            ->whereRaw(
-                'DATE_ADD(`purchase_date`, INTERVAL `warranty_months` MONTH) <= DATE_ADD(NOW(), INTERVAL '
-                                 . $days
-                . ' DAY) AND DATE_ADD(`purchase_date`, INTERVAL `warranty_months` MONTH) > NOW()'
-            )
-            ->orderByRaw('DATE_ADD(`purchase_date`,INTERVAL `warranty_months` MONTH)')
+            ->whereNull('deleted_at')
+            ->where(function ($query) use ($days) {
+                // Check for manual asset EOL first
+                $query->where(function ($query) use ($days) {
+                    $query->whereNotNull('asset_eol_date')
+                        ->whereBetween('asset_eol_date', [Carbon::now(), Carbon::now()->addDays($days)]);
+                // Otherwise use the warranty months + purchase date + threshold
+                })->orWhere(function ($query) use ($days) {
+                    $query->whereNotNull('purchase_date')
+                        ->whereNotNull('warranty_months')
+                        ->whereBetween('purchase_date', [Carbon::now(), Carbon::now()->addMonths('assets.warranty_months')->addDays($days)]);
+                });
+            })
+            ->orderBy('asset_eol_date', 'ASC')
+            ->orderBy('purchase_date', 'ASC')
             ->get();
     }
 
@@ -1003,31 +1023,6 @@ class Asset extends Depreciable
         return false;
     }
 
-
-    /**
-     * Checks for a category-specific EULA, and if that doesn't exist,
-     * checks for a settings level EULA
-     *
-     * @author [A. Gianotto] [<snipe@snipe.net>]
-     * @since  [v4.0]
-     * @return string | false
-     */
-    public function getEula()
-    {
-
-        if (($this->model) && ($this->model->category)) {
-            if (($this->model->category->eula_text) && ($this->model->category->use_default_eula === 0)) {
-                return Helper::parseEscapedMarkedown($this->model->category->eula_text);
-            } elseif ($this->model->category->use_default_eula === 1) {
-                return Helper::parseEscapedMarkedown(Setting::getSettings()->default_eula_text);
-            } else {
-
-                return false;
-            }
-        }
-
-        return false;
-    }
     public function getComponentCost()
     {
         $cost = 0;
@@ -1877,6 +1872,30 @@ class Asset extends Depreciable
                         );
                     }
 
+                    if ($fieldname == 'jobtitle') {
+                        $query->where(function ($query) use ($search_val) {
+                            if (is_array($search_val)) {
+                                $query->whereHasMorph(
+                                    'assignedTo',
+                                    [User::class],
+                                    function ($query) use ($search_val) {
+                                        $query->whereIn('users.jobtitle', $search_val);
+                                    }
+                                );
+                            } else {
+                                $query->whereHasMorph(
+                                    'assignedTo',
+                                    [User::class],
+                                    function ($query) use ($search_val) {
+                                        $query->where(function ($query) use ($search_val) {
+                                            $query->where('users.jobtitle', 'LIKE', '%' . $search_val . '%');
+                                        });
+                                    }
+                                );
+                            }
+                        });
+                    }
+
 
                     /**
                      * THIS CLUNKY BIT IS VERY IMPORTANT
@@ -1901,7 +1920,7 @@ class Asset extends Depreciable
                      */
 
                     if (($fieldname!='category') && ($fieldname!='model_number') && ($fieldname!='rtd_location') && ($fieldname!='location') && ($fieldname!='supplier')
-                        && ($fieldname!='status_label') && ($fieldname!='assigned_to') && ($fieldname!='model') && ($fieldname!='company') && ($fieldname!='manufacturer')
+                        && ($fieldname!='status_label') && ($fieldname!='assigned_to') && ($fieldname!='model')  && ($fieldname!='jobtitle') && ($fieldname!='company') && ($fieldname!='manufacturer')
                     ) {
                         $query->where('assets.'.$fieldname, 'LIKE', '%' . $search_val . '%');
                     }

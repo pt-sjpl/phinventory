@@ -58,12 +58,13 @@
 
 
             <!-- Checkout selector -->
-          @include ('partials.forms.checkout-selector', ['user_select' => 'true','asset_select' => 'false', 'location_select' => 'true'])
 
-          {{-- @include ('partials.forms.edit.user-select-scan-qr', ['translated_name' => trans('general.user'), 'fieldname' => 'assigned_user']) --}}
-          @include ('partials.forms.edit.user-select', ['translated_name' => trans('general.user'), 'fieldname' => 'assigned_user'])
-            {{-- @include ('partials.forms.edit.asset-select', ['translated_name' => trans('general.asset'), 'asset_selector_div_id' => 'assigned_asset', 'fieldname' => 'assigned_asset', 'unselect' => 'true', 'style' => 'display:none;']) --}}
-          @include ('partials.forms.edit.location-select', ['translated_name' => trans('general.location'), 'fieldname' => 'assigned_location', 'style' => 'display:none;'])
+
+          @include ('partials.forms.checkout-selector', ['user_select' => 'true','asset_select' => 'false', 'location_select' => 'true'])
+          @include ('partials.forms.edit.user-select', ['translated_name' => trans('general.user'), 'fieldname' => 'assigned_user', 'style' => session('checkout_to_type') == 'user' ? '' : 'display: none;'])
+            <!-- We have to pass unselect here so that we don't default to the asset that's being checked out. We want that asset to be pre-selected everywhere else. -->
+          @include ('partials.forms.edit.asset-select', ['translated_name' => trans('general.asset'), 'asset_selector_div_id' => 'assigned_asset', 'fieldname' => 'assigned_asset', 'unselect' => 'true', 'style' => session('checkout_to_type') == 'asset' ? '' : 'display: none;'])
+          @include ('partials.forms.edit.location-select', ['translated_name' => trans('general.location'), 'fieldname' => 'assigned_location', 'style' => session('checkout_to_type') == 'location' ? '' : 'display: none;'])
 
           <!-- Checkout/Checkin Date -->
               <div class="form-group {{ $errors->has('checkout_at') ? 'error' : '' }}">
@@ -146,22 +147,48 @@
             return true; // ensure form still submits
         });
 
-        $('#assigned_assets_select').select2('open');
-        setTimeout(function () {
-            const $searchField = $('.select2-search__field');
-            const $results = $('.select2-results');
+        function attachScannerHandler($input, $results) {
+            if (!$input.length || !(window.snipeit && window.snipeit.extractAssetTagFromScan)) {
+                return;
+            }
 
-            // Focus the search input
-            $searchField.focus();
+            $input.off('input.qrAssetSearch').on('input.qrAssetSearch', function () {
+                var assetTag = window.snipeit.extractAssetTagFromScan($(this).val());
 
-            // Hide results initially
+                if (assetTag) {
+                    $(this).val(assetTag);
+                    $(this).trigger('keyup');
+                    if ($results && $results.length) {
+                        $results.show();
+                    }
+                }
+            });
+        }
+
+        function setupSelect2SearchField() {
+            var $searchField = $('.select2-search__field');
+            var $results = $('.select2-results');
+
+            if (!$searchField.length) {
+                return;
+            }
+
+            $searchField.trigger('focus');
             $results.hide();
 
-            // Show results when a user starts typing
-            $searchField.on('input', function () {
+            attachScannerHandler($searchField, $results);
+
+            $searchField.off('input.assetsSelect').on('input.assetsSelect', function () {
                 $results.show();
             });
-        }, 0);
+        }
+
+        $('#assigned_assets_select').select2('open');
+        setTimeout(setupSelect2SearchField, 0);
+
+        $('#assigned_assets_select').on('select2:open', function () {
+            setTimeout(setupSelect2SearchField, 0);
+        });
     });
 </script>
 

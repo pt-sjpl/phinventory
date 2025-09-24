@@ -25,7 +25,7 @@
 
             @can('update', \App\Models\Asset::class)
                 <option value="edit">{{ trans('button.edit') }}</option>
-                <option value="maintenance">{{ trans('button.add_maintenance') }}</option>
+                {{-- <option value="maintenance">{{ trans('button.add_maintenance') }}</option> --}}
             @endcan
 
             @if((!isset($status)) || (($status != 'Deployed') && ($status != 'Archived')))

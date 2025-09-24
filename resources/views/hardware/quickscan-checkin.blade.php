@@ -124,6 +124,19 @@
 
 @section('moar_scripts')
     <script nonce="{{ csrf_token() }}">
+        var $assetTagInput = $('#asset_tag');
+
+        if ($assetTagInput.length) {
+            $assetTagInput.on('input.qrAssetSearch', function () {
+                var assetTag = window.snipeit && window.snipeit.extractAssetTagFromScan
+                    ? window.snipeit.extractAssetTagFromScan($(this).val())
+                    : null;
+
+                if (assetTag) {
+                    $(this).val(assetTag);
+                }
+            });
+        }
 
         $("#checkin-form").submit(function (event) {
             $('#checkedin-div').show();
