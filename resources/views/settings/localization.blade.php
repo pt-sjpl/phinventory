@@ -58,8 +58,12 @@
                                 <label for="name_display_format">{{ trans('general.name_display_format') }}</label>
                             </div>
                             <div class="col-md-5 col-xs-12">
-                                {!! Form::name_display_format('name_display_format', old('name_display_format', $setting->name_display_format), 'select2') !!}
-
+                                <x-input.select
+                                    name="name_display_format"
+                                    :options="['first_last' => trans('general.firstname_lastname_display'), 'last_first' => trans('general.lastname_firstname_display')]"
+                                    :selected="old('name_display_format', $setting->name_display_format)"
+                                    style="width: 100%"
+                                />
                                 {!! $errors->first('name_display_format', '<span class="alert-msg" aria-hidden="true">:message</span>') !!}
                             </div>
                         </div>

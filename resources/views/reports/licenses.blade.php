@@ -31,6 +31,7 @@
                                 <th class="col-sm-1">{{ trans('admin/licenses/form.seats') }}</th>
                                 <th class="col-sm-1">{{ trans('admin/licenses/form.remaining_seats') }}</th>
                                 <th class="col-sm-1">{{ trans('admin/licenses/form.expiration') }}</th>
+                                <th class="col-sm-1">{{ trans('admin/licenses/form.termination_date') }}</th>
                                 <th class="col-sm-1">{{ trans('general.purchase_date') }}</th>
                                 <th class="col-sm-1 text-right" class="col-sm-1">{{ trans('general.purchase_cost') }}</th>
                                 <th class="col-sm-1">{{ trans('general.depreciation') }}</th>
@@ -54,6 +55,12 @@
                                 <td>{{ $license->seats }}</td>
                                 <td>{{ $license->remaincount() }}</td>
                                 <td>{{ $license->expiration_date }}</td>
+                                <td>{{ $license->termination_date }}
+                                    @if ($license->isTerminated())
+                                        <span class="text-danger">
+                                        <x-icon type="warning" class="text-warning" />
+                                        </span>
+                                    @endif</td>
                                 <td>{{ $license->purchase_date }}</td>
                                 <td class="text-right">
                                     {{ $snipeSettings->default_currency }}{{ Helper::formatCurrencyOutput($license->purchase_cost) }}
