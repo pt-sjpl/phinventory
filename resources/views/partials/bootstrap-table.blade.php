@@ -313,16 +313,16 @@
         @endcan
 
         @can('update', \App\Models\Asset::class)
-        btnAddMaintenance: {
-            text: '{{ trans('button.add_maintenance') }}',
-            icon: 'fa-solid fa-screwdriver-wrench',
-            event () {
-                window.location.href = '{{ route('maintenances.create', ['asset_id' => (isset($asset)) ? $asset->id :'' ]) }}';
-            },
-            attributes: {
-                title: '{{ trans('button.add_maintenance') }}',
-            }
-        },
+        // btnAddMaintenance: {
+        //     text: '{{ trans('button.add_maintenance') }}',
+        //     icon: 'fa-solid fa-screwdriver-wrench',
+        //     event () {
+        //         window.location.href = '{{ route('maintenances.create', ['asset_id' => (isset($asset)) ? $asset->id :'' ]) }}';
+        //     },
+        //     attributes: {
+        //         title: '{{ trans('button.add_maintenance') }}',
+        //     }
+        // },
         @endcan
 
 
@@ -599,22 +599,22 @@
 
     @can('update', \App\Models\Asset::class)
     // Custom Field table buttons
-    window.maintenanceButtons = () => ({
-        btnAdd: {
-            text: '{{ trans('general.create') }}',
-            icon: 'fa fa-plus',
-            event () {
-                window.location.href = '{{ route('maintenances.create', ['asset_id' => (isset($asset)) ? $asset->id :'' ]) }}';
-            },
-            attributes: {
-                class: 'btn-info',
-                title: '{{ trans('button.add_maintenance') }}',
-                @if ($snipeSettings->shortcuts_enabled == 1)
-                accesskey: 'n'
-                @endif
-            }
-        },
-    });
+    // window.maintenanceButtons = () => ({
+    //     btnAdd: {
+    //         text: '{{ trans('general.create') }}',
+    //         icon: 'fa fa-plus',
+    //         event () {
+    //             window.location.href = '{{ route('maintenances.create', ['asset_id' => (isset($asset)) ? $asset->id :'' ]) }}';
+    //         },
+    //         attributes: {
+    //             class: 'btn-info',
+    //             title: '{{ trans('button.add_maintenance') }}',
+    //             @if ($snipeSettings->shortcuts_enabled == 1)
+    //             accesskey: 'n'
+    //             @endif
+    //         }
+    //     },
+    // });
     @endcan
 
     @can('create', \App\Models\Category::class)
