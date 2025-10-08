@@ -136,14 +136,20 @@ class AssetsController extends Controller
         $successes = [];
         $failures = [];
 
-        for ($a = 1, $aMax = count($asset_tags); $a <= $aMax; $a++) {
-            $asset = new Asset();
-
-            $asset->model()->associate($model);
-            $asset->name = $request->input('name');
+        $lockName = $this->getAssetTagLockName($asset_tags, $companyId, $settings);
+        $lockAcquired = false;
+        $response = null;
 
         try {
-            $response = DB::transaction(function() use ($request, $asset_tags, $serials, $settings, &$successes, &$failures, &$asset,) {
+            $lockAcquired = $this->acquireAssetTagLock($lockName);
+
+            if (! $lockAcquired) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', __('Unable to generate a unique asset tag at this moment. Please try again.'));
+            }
+
+            $response = DB::transaction(function () use ($request, $asset_tags, $serials, $settings, $model, $companyId, &$successes, &$failures, &$asset) {
                 for ($a = 1; $a <= count($asset_tags); $a++) {
                     $asset = new Asset();
                     $asset->model()->associate(AssetModel::find($request->input('model_id')));
@@ -153,26 +159,26 @@ class AssetsController extends Controller
                     if (($serials) && (array_key_exists($a, $serials))) {
                         $asset->serial = $serials[$a];
                     }
-                        // lock any rows whose tag starts with our base
+                    // lock any rows whose tag starts with our base
                     $latest = Asset::lockForUpdate()->orderByDesc('asset_tag')->first();
                     $nextInt = (int) $latest->asset_tag + 1;
                     $asset->asset_tag = Str::padLeft($nextInt, strlen($latest->asset_tag), '0');
 
-            $asset->company_id              = $companyId;
-            $asset->model_id                = $request->input('model_id');
-            $asset->order_number            = $request->input('order_number');
-            $asset->notes                   = $request->input('notes');
-            $asset->created_by              = auth()->id();
-            $asset->status_id               = request('status_id');
-            $asset->warranty_months         = request('warranty_months', null);
-            $asset->purchase_cost           = request('purchase_cost');
-            $asset->purchase_date           = request('purchase_date', null);
-            $asset->asset_eol_date          = request('asset_eol_date', null);
-            $asset->assigned_to             = request('assigned_to', null);
-            $asset->supplier_id             = request('supplier_id', null);
-            $asset->requestable             = request('requestable', 0);
-            $asset->rtd_location_id         = request('rtd_location_id', null);
-            $asset->byod                    = request('byod', 0);
+                    $asset->company_id              = $companyId;
+                    $asset->model_id                = $request->input('model_id');
+                    $asset->order_number            = $request->input('order_number');
+                    $asset->notes                   = $request->input('notes');
+                    $asset->created_by              = auth()->id();
+                    $asset->status_id               = request('status_id');
+                    $asset->warranty_months         = request('warranty_months', null);
+                    $asset->purchase_cost           = request('purchase_cost');
+                    $asset->purchase_date           = request('purchase_date', null);
+                    $asset->asset_eol_date          = request('asset_eol_date', null);
+                    $asset->assigned_to             = request('assigned_to', null);
+                    $asset->supplier_id             = request('supplier_id', null);
+                    $asset->requestable             = request('requestable', 0);
+                    $asset->rtd_location_id         = request('rtd_location_id', null);
+                    $asset->byod                    = request('byod', 0);
 
                     if (! empty($settings->audit_interval)) {
                         $asset->next_audit_date = Carbon::now()->addMonths((int) $settings->audit_interval)->toDateString();
@@ -183,21 +189,21 @@ class AssetsController extends Controller
                         $asset->location_id = $request->input('rtd_location_id', null);
                     }
 
-            if ($request->has('use_cloned_image')) {
-                $cloned_model_img = Asset::select('image')->find($request->input('clone_image_from_id'));
-                if ($cloned_model_img) {
-                    $new_image_name = 'clone-'.date('U').'-'.$cloned_model_img->image;
-                    $new_image = 'assets/'.$new_image_name;
-                    Storage::disk('public')->copy('assets/'.$cloned_model_img->image, $new_image);
-                    $asset->image = $new_image_name;
-                }
+                    if ($request->has('use_cloned_image')) {
+                        $cloned_model_img = Asset::select('image')->find($request->input('clone_image_from_id'));
+                        if ($cloned_model_img) {
+                            $new_image_name = 'clone-'.date('U').'-'.$cloned_model_img->image;
+                            $new_image = 'assets/'.$new_image_name;
+                            Storage::disk('public')->copy('assets/'.$cloned_model_img->image, $new_image);
+                            $asset->image = $new_image_name;
+                        }
 
-            } else {
-                $asset = $request->handleImages($asset);
-            }
+                    } else {
+                        $asset = $request->handleImages($asset);
+                    }
 
-            // Update custom fields in the database.
-            // Validation for these fields is handled through the AssetRequest form request
+                    // Update custom fields in the database.
+                    // Validation for these fields is handled through the AssetRequest form request
 
                     if (($model) && ($model->fieldset)) {
                         foreach ($model->fieldset->fields as $field) {
@@ -296,8 +302,12 @@ class AssetsController extends Controller
             }
             throw $e;
         } finally {
-            // Release the lock no matter what
-            DB::statement("SELECT RELEASE_LOCK(?)", [$lockName]);
+            if ($lockAcquired) {
+                $this->releaseAssetTagLock($lockName);
+            }
+        }
+        if ($response instanceof RedirectResponse) {
+            return $response;
         }
         if($request->get('redirect_option') === 'back'){
             session()->put(['redirect_option' => 'index']);
@@ -332,7 +342,7 @@ class AssetsController extends Controller
         }
 
         return redirect()->back()->withInput()->withErrors($asset->getErrors());
-    }}
+    }
 
 
     /**
@@ -1112,5 +1122,57 @@ class AssetsController extends Controller
         $requestedItems = $requestedItems->orderBy('created_at', 'desc')->get();
 
         return view('hardware/requested', compact('requestedItems'));
+    }
+
+    private function getAssetTagLockName(array $assetTags, ?int $companyId, ?Setting $settings): string
+    {
+        $prefix = $settings?->auto_increment_prefix ?? '';
+        $firstTag = '';
+
+        if (isset($assetTags[1])) {
+            $firstTag = (string) $assetTags[1];
+        } elseif (! empty($assetTags)) {
+            $values = array_values($assetTags);
+            $firstTag = (string) $values[0];
+        }
+
+        $seed = $prefix . '|' . $firstTag;
+
+        if ($seed === '|' || $seed === '') {
+            $seed = 'global';
+        }
+
+        $hash = substr(hash('sha256', $seed), 0, 40);
+
+        return sprintf('asset_tag:%s:%s', $companyId ?? 'global', $hash);
+    }
+
+    private function acquireAssetTagLock(string $lockName, int $timeoutSeconds = 5): bool
+    {
+        if ($lockName === '' || DB::connection()->getDriverName() !== 'mysql') {
+            return true;
+        }
+
+        try {
+            $result = DB::selectOne('SELECT GET_LOCK(?, ?) AS acquired', [$lockName, $timeoutSeconds]);
+        } catch (\Throwable $exception) {
+            Log::warning('Asset tag lock acquisition failed', ['lock' => $lockName, 'error' => $exception->getMessage()]);
+            return true;
+        }
+
+        return $result && (int) ($result->acquired ?? 0) === 1;
+    }
+
+    private function releaseAssetTagLock(string $lockName): void
+    {
+        if ($lockName === '' || DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
+        try {
+            DB::selectOne('SELECT RELEASE_LOCK(?) AS released', [$lockName]);
+        } catch (\Throwable $exception) {
+            Log::warning('Asset tag lock release failed', ['lock' => $lockName, 'error' => $exception->getMessage()]);
+        }
     }
 }
